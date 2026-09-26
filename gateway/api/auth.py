@@ -139,6 +139,41 @@ class KeyStore:
         return key, _key_dict(row)
 
 
+    async def list_tenants(self) -> list[dict]:
+        return [_tenant_dict(r) for r in await self.pool.fetch("SELECT * FROM tenants ORDER BY id")]
+
+    async def get_tenant(self, tenant_id: str) -> dict | None:
+        row = await self.pool.fetchrow("SELECT * FROM tenants WHERE id = $1", tenant_id)
+        return _tenant_dict(row) if row else None
+
+    async def update_tenant(self, tenant_id: str, fields: dict) -> dict | None:
+        allowed = {"name", "monthly_budget_usd", "rpm_limit", "tpm_limit"}
+        sets = {k: v for k, v in fields.items() if k in allowed}
+        if not sets:
+            return await self.get_tenant(tenant_id)
+        cols = ", ".join(f"{k} = ${i + 2}" for i, k in enumerate(sets))
+        row = await self.pool.fetchrow(f"UPDATE tenants SET {cols} WHERE id = $1 RETURNING *", tenant_id, *sets.values())
+        return _tenant_dict(row) if row else None
+
+    async def list_keys(self, tenant_id: str) -> list[dict]:
+        rows = await self.pool.fetch(
+            "SELECT id, tenant_id, name, key_prefix, created_at, revoked_at FROM api_keys WHERE tenant_id = $1 ORDER BY id",
+            tenant_id,
+        )
+        return [_key_dict(r) for r in rows]
+
+    async def revoke_key(self, key_id: int) -> dict | None:
+        row = await self.pool.fetchrow(
+            """
+            UPDATE api_keys SET revoked_at = COALESCE(revoked_at, now()) WHERE id = $1
+            RETURNING id, tenant_id, name, key_prefix, created_at, revoked_at
+            """,
+            key_id,
+        )
+        self.invalidate_all()
+        return _key_dict(row) if row else None
+
+
 def _tenant_dict(row: asyncpg.Record) -> dict:
     return {
         "id": row["id"],

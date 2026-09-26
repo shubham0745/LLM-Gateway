@@ -11,8 +11,10 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 
+from gateway.accounting.pricing import cost_usd
 from gateway.accounting.tokens import estimate_prompt_tokens, estimate_text_tokens
 from gateway.errors import GatewayError, ProviderError
+from gateway.limits.guard import Reservation
 from gateway.routing.router import StreamHandle
 from gateway.services import Services
 from gateway.telemetry.record import RequestRecord
@@ -27,8 +29,15 @@ class ClosingStreamingResponse(StreamingResponse):
     If the client disconnects while the generator is suspended at a ``yield``,
     Starlette abandons it without closing it. Closing it here runs its
     ``finally`` block, which closes the upstream HTTP stream so the provider
-    stops generating tokens nobody will read.
+    stops generating tokens nobody will read. ``on_unstarted`` covers the
+    corner where the client vanished before the first byte, so the generator
+    never ran at all (closing an unstarted generator skips its ``finally``).
     """
+
+    def __init__(self, content, *, on_unstarted=None, started=None, **kw):
+        super().__init__(content, **kw)
+        self._on_unstarted = on_unstarted
+        self._started = started
 
     async def __call__(self, scope, receive, send) -> None:  # type: ignore[override]
         try:
@@ -37,6 +46,8 @@ class ClosingStreamingResponse(StreamingResponse):
             aclose = getattr(self.body_iterator, "aclose", None)
             if aclose is not None:
                 await aclose()
+            if self._on_unstarted is not None and self._started is not None and not self._started.get("yes"):
+                self._on_unstarted()
 
 
 def _services(request: Request) -> Services:
@@ -64,6 +75,8 @@ def _gateway_headers(record: RequestRecord) -> dict[str, str]:
         h["x-gateway-provider"] = record.provider
         h["x-gateway-model"] = record.model or ""
     h["x-gateway-attempts"] = str(sum(1 for a in record.attempts if a.outcome in ("ok", "error")))
+    if not record.stream:
+        h["x-gateway-cost-usd"] = f"{record.cost_usd:.8f}"
     return h
 
 
@@ -97,20 +110,37 @@ async def list_models(request: Request) -> JSONResponse:
 async def chat_completions(request: Request) -> Response:
     svc = _services(request)
     record = RequestRecord()
+    reservation: Reservation | None = None
+    handed_off = False  # a streaming response now owns finalization
+    svc.telemetry.metrics.inflight.inc()
     try:
+        # authenticate -> check limits -> (cache) -> pick a route -> call the provider -> record
         principal = await svc.keys.authenticate(request.headers.get("authorization"))
         record.tenant_id, record.key_id = principal.tenant_id, principal.key_id
         body = await _parse_body(request)
         record.alias = body["model"]
         record.stream = bool(body.get("stream"))
         chain = svc.router.resolve(body["model"])
+        reservation = await svc.limits.admit(principal, body, chain, svc.config)
 
         if record.stream:
             handle = await svc.router.open_stream(body, chain, record)
             record.provider, record.model = handle.target.provider, handle.target.model
-            gen = _relay_stream(svc, body, handle, record)
+            started: dict[str, bool] = {}
+            gen = _relay_stream(svc, body, handle, record, reservation, started)
+
+            def never_started() -> None:
+                record.status, record.http_status = "client_disconnected", 499
+                svc.spawn(handle.close())
+                _finalize(svc, record, reservation)
+
+            handed_off = True
             return ClosingStreamingResponse(
-                gen, media_type="text/event-stream", headers={**_gateway_headers(record), "cache-control": "no-cache"}
+                gen,
+                on_unstarted=never_started,
+                started=started,
+                media_type="text/event-stream",
+                headers={**reservation.headers, **_gateway_headers(record), "cache-control": "no-cache"},
             )
 
         target, resp = await svc.router.complete(body, chain, record)
@@ -122,17 +152,35 @@ async def chat_completions(request: Request) -> Response:
             "completion_tokens": record.completion_tokens,
             "total_tokens": record.prompt_tokens + record.completion_tokens,
         }
-        record.finish()
-        svc.telemetry.emit(record)
-        return JSONResponse(resp, headers=_gateway_headers(record))
+        _finalize(svc, record, reservation)
+        return JSONResponse(resp, headers={**reservation.headers, **_gateway_headers(record)})
     except GatewayError as err:
         record.status, record.http_status, record.error = "error", err.status, err.message
-        record.finish()
-        svc.telemetry.emit(record)
+        if err.code in ("rate_limit_exceeded", "request_too_large", "budget_exceeded"):
+            record.status = "rejected"
+        _finalize(svc, record, reservation)
         return err.response(_gateway_headers(record))
+    finally:
+        if not handed_off:
+            svc.telemetry.metrics.inflight.dec()
 
 
-async def _relay_stream(svc: Services, body: dict, handle: StreamHandle, record: RequestRecord) -> AsyncIterator[bytes]:
+def _finalize(svc: Services, record: RequestRecord, reservation: Reservation | None) -> None:
+    """Price the request, emit its record, and settle its reservation (in the background)."""
+    record.cost_usd = round(cost_usd(svc.config.pricing, record.model, record.prompt_tokens, record.completion_tokens), 8)
+    record.finish()
+    svc.telemetry.emit(record)
+    if record.stream and record.provider:
+        svc.telemetry.metrics.inflight.dec()
+    if reservation is not None:
+        svc.spawn(svc.limits.settle(reservation, record.prompt_tokens + record.completion_tokens, record.cost_usd))
+
+
+async def _relay_stream(
+    svc: Services, body: dict, handle: StreamHandle, record: RequestRecord, reservation: Reservation,
+    started: dict[str, bool],
+) -> AsyncIterator[bytes]:
+    started["yes"] = True
     completion_id = "chatcmpl-" + record.request_id[4:]
     include_usage = bool((body.get("stream_options") or {}).get("include_usage"))
     text_parts: list[str] = []
@@ -181,6 +229,5 @@ async def _relay_stream(svc: Services, body: dict, handle: StreamHandle, record:
             # Client went away (cancellation or generator close). Bill what was generated.
             record.status, record.http_status = "client_disconnected", 499
             _apply_usage(record, usage, body, "".join(text_parts))
+        _finalize(svc, record, reservation)
         await handle.close()
-        record.finish()
-        svc.telemetry.emit(record)
