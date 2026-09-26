@@ -1,0 +1,13 @@
+[project]
+name = "llm-gateway"
+version = "0.1.0"
+description = "Self-hosted, OpenAI-compatible LLM gateway with routing, failover, limits, caching and cost tracking"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC"]
+ignore = ["E501", "B008"]

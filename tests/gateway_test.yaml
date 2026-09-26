@@ -1,0 +1,36 @@
+# Config used by the test suite: every provider is the in-process mock.
+providers:
+  mock-primary: {type: openai_compat, base_url: "${MOCK_URL}/primary/v1"}
+  mock-backup: {type: openai_compat, base_url: "${MOCK_URL}/backup/v1"}
+  mock-third: {type: openai_compat, base_url: "${MOCK_URL}/third/v1"}
+  mock-anthropic: {type: anthropic, base_url: "${MOCK_URL}/anthropic"}
+  keyless: {type: openai, base_url: "${MOCK_URL}/keyless/v1", api_key_env: GATEWAY_TEST_UNSET_KEY}
+aliases:
+  mock:
+    - {provider: mock-primary, model: mock-small}
+    - {provider: mock-backup, model: mock-small}
+  chain3:
+    - {provider: mock-primary, model: mock-small}
+    - {provider: mock-backup, model: mock-small}
+    - {provider: mock-third, model: mock-small}
+  anthropic:
+    - {provider: mock-anthropic, model: mock-claude}
+  anthropic-then-openai:
+    - {provider: mock-anthropic, model: mock-claude}
+    - {provider: mock-backup, model: mock-small}
+  keyless-first:
+    - {provider: keyless, model: whatever}
+    - {provider: mock-backup, model: mock-small}
+  primary-only:
+    - {provider: mock-primary, model: mock-small}
+pricing:
+  mock-small: {input: 0.15, output: 0.60}
+  mock-claude: {input: 1.00, output: 5.00}
+timeouts: {connect: 1.0, ttft: 1.0, idle: 1.0, total: 5.0}
+retry: {max_retries: 1, base_delay: 0.01, max_delay: 0.05, max_retry_after: 0.5}
+breaker: {failure_threshold: 3, cooldown_s: 0.5, half_open_max_probes: 1}
+cache:
+  exact_enabled: true
+  exact_ttl_s: 60
+  semantic: {enabled: false, threshold: 0.95, ttl_s: 60}
+limits: {rpm: 10000, tpm: 10000000, monthly_budget_usd: 100.0, default_completion_estimate: 64}

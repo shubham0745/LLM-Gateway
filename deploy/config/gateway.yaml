@@ -1,0 +1,92 @@
+# Seed configuration. On first start the gateway stores this document in
+# Postgres as config version 1; after that, edit it through the admin API
+# (PUT /admin/config) and every instance reloads it without a restart.
+#
+# ${VAR:-default} references are expanded from the environment when the file
+# is loaded, so the same file works in Docker Compose and on a laptop.
+
+providers:
+  openai:
+    type: openai
+    base_url: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+    api_key_env: OPENAI_API_KEY          # provider is skipped when the variable is unset
+  anthropic:
+    type: anthropic
+    base_url: ${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
+    api_key_env: ANTHROPIC_API_KEY
+  ollama:
+    type: openai_compat
+    base_url: ${OLLAMA_URL:-http://ollama:11434}/v1
+  mock-primary:
+    type: openai_compat
+    base_url: ${MOCK_URL:-http://mock:9000}/primary/v1
+  mock-backup:
+    type: openai_compat
+    base_url: ${MOCK_URL:-http://mock:9000}/backup/v1
+  mock-anthropic:
+    type: anthropic
+    base_url: ${MOCK_URL:-http://mock:9000}/anthropic
+
+aliases:
+  # Cheap and quick. Hosted first, local Ollama as the free last resort.
+  fast:
+    - {provider: openai, model: gpt-4o-mini}
+    - {provider: anthropic, model: claude-haiku-4-5}
+    - {provider: ollama, model: "qwen2.5:0.5b"}
+  smart:
+    - {provider: anthropic, model: claude-sonnet-5}
+    - {provider: openai, model: gpt-4o}
+    - {provider: ollama, model: "qwen2.5:0.5b"}
+  local:
+    - {provider: ollama, model: "qwen2.5:0.5b"}
+  # Everything below runs against the mock provider: free, repeatable benchmarks.
+  mock:
+    - {provider: mock-primary, model: mock-small}
+    - {provider: mock-backup, model: mock-small}
+  mock-anthropic:
+    - {provider: mock-anthropic, model: mock-claude}
+    - {provider: mock-backup, model: mock-small}
+
+# USD per 1M tokens. Check these against the providers' pricing pages before
+# relying on the spend numbers; they change.
+pricing:
+  gpt-4o-mini: {input: 0.15, output: 0.60}
+  gpt-4o: {input: 2.50, output: 10.00}
+  claude-haiku-4-5: {input: 1.00, output: 5.00}
+  claude-sonnet-5: {input: 2.00, output: 10.00}
+  "qwen2.5:0.5b": {input: 0.0, output: 0.0}
+  # The mock is priced like a cheap hosted model so savings show up in dashboards.
+  mock-small: {input: 0.15, output: 0.60}
+  mock-claude: {input: 1.00, output: 5.00}
+
+timeouts:
+  connect: 3.0
+  ttft: 10.0
+  idle: 20.0
+  total: 120.0
+
+retry:
+  max_retries: 1
+  base_delay: 0.2
+  max_delay: 2.0
+  max_retry_after: 2.0
+
+breaker:
+  failure_threshold: 5
+  cooldown_s: 15.0
+  half_open_max_probes: 1
+
+cache:
+  exact_enabled: true
+  exact_ttl_s: 3600
+  semantic:
+    enabled: true
+    threshold: 0.95   # replaced by the measured value in Phase 4, see docs/benchmarks.md
+    ttl_s: 86400
+  disabled_aliases: []
+
+limits:
+  rpm: 600
+  tpm: 1000000
+  monthly_budget_usd: 50.0
+  default_completion_estimate: 512

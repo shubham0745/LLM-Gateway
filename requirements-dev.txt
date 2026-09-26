@@ -1,0 +1,6 @@
+-r requirements.txt
+pytest>=8,<10
+pytest-asyncio>=0.23,<2
+openai>=1.40
+locust>=2.29,<3
+ruff>=0.6
