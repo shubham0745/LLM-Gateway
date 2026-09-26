@@ -26,7 +26,7 @@ aliases:
 pricing:
   mock-small: {input: 0.15, output: 0.60}
   mock-claude: {input: 1.00, output: 5.00}
-timeouts: {connect: 1.0, ttft: 1.0, idle: 1.0, total: 5.0}
+timeouts: {connect: 1.0, ttft: 1.0, idle: 1.0, total: 2.5}
 retry: {max_retries: 1, base_delay: 0.01, max_delay: 0.05, max_retry_after: 0.5}
 breaker: {failure_threshold: 3, cooldown_s: 0.5, half_open_max_probes: 1}
 cache:

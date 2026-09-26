@@ -11,6 +11,15 @@ services:
       interval: 2s
       retries: 30
 
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 30
+
   mock:
     build: .
     command: ["uvicorn", "mock_provider.app:app", "--host", "0.0.0.0", "--port", "9000", "--no-access-log"]
@@ -26,11 +35,14 @@ services:
     env_file: [{path: .env, required: false}]
     environment:
       GATEWAY_DATABASE_URL: postgresql://gateway:gateway@postgres:5432/gateway
+      GATEWAY_REDIS_URL: redis://redis:6379/0
     ports: ["8080:8080"]
     depends_on:
       postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
       mock: {condition: service_started}
 
 volumes:
   pgdata:
+  redisdata:
   ollama:

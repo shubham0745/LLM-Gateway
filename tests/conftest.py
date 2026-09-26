@@ -138,6 +138,14 @@ def reset_mock(request):
     if "mock_server" in request.fixturenames or "gateway_server" in request.fixturenames:
         srv = request.getfixturevalue("mock_server")
         httpx.post(f"{srv.url}/control/reset-all")
+        import redis
+
+        r = redis.Redis.from_url(REDIS_URL)
+        # Circuit breakers, rate-limit buckets and caches must not leak between tests.
+        for pattern in ("gw:cb:*", "gw:rl:*", "gw:cache:*"):
+            for k in r.scan_iter(pattern):
+                r.delete(k)
+        r.close()
     yield
 
 

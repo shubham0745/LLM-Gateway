@@ -58,6 +58,9 @@ class Behavior:
     retry_after: float | None = 1.0
     disconnect_after_tokens: int = 5
     model_name: str | None = None
+    # Fail exactly the next N requests with fail_next_status, then behave normally.
+    fail_next: int = 0
+    fail_next_status: int = 500
 
 
 @dataclass
@@ -201,6 +204,12 @@ async def _chat(instance: str, request: Request) -> Response:
     if b.mode == "hang":
         # Accept the connection and never answer; the gateway's timeouts must save us.
         await asyncio.sleep(3600)
+    if _b(instance).fail_next > 0:
+        _b(instance).fail_next -= 1
+        _count(instance, b.fail_next_status)
+        st.errors_injected += 1
+        headers = {"retry-after": str(b.retry_after)} if b.fail_next_status == 429 and b.retry_after is not None else None
+        return _error(b.fail_next_status, "mock scripted failure", headers)
     if b.rate_limit_rate and random.random() < b.rate_limit_rate:
         _count(instance, 429)
         st.rate_limited += 1

@@ -1,17 +1,50 @@
-"""Alias resolution and provider calls."""
+"""Alias resolution, fallback chains, retries, timeouts and circuit breakers.
+
+For each target in an alias's chain, in order:
+
+1. Skip it if its provider has no API key configured or its circuit is open.
+2. Call it under three timeouts: connect (httpx), time to first token
+   (streaming only) and total.
+3. On a retryable error (429, 5xx, timeouts, connection resets) retry the same
+   target with exponential backoff and full jitter, honouring Retry-After. A
+   Retry-After longer than we are willing to wait means "fail over now".
+4. On a non-retryable provider-side error (bad key, unknown model, feature the
+   adapter doesn't support) move to the next target without retrying.
+5. On a client error (400 and friends) stop: every provider would reject it.
+
+Failover is only invisible before the first token. Streams are therefore
+opened and held until the first chunk with real output arrives; only then do
+we commit to that provider and start sending bytes to the client. What
+happens after that is handled by the caller (see ``openai_routes``).
+"""
 
 from __future__ import annotations
 
 import asyncio
+import random
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field
+from typing import Any, TypeVar
 
-from gateway.config import GatewayConfig, Target
+from gateway.config import GatewayConfig, RetryPolicy, Target, Timeouts
 from gateway.errors import GatewayError, ProviderError
-from gateway.providers.base import chunk_has_output
+from gateway.providers.base import Provider, chunk_has_output
 from gateway.providers.registry import ProviderRegistry
+from gateway.routing.breaker import CircuitBreakers
 from gateway.telemetry.record import Attempt, RequestRecord
+
+T = TypeVar("T")
+
+
+class RouterHooks:
+    """Metrics callbacks; the default does nothing (overridden by telemetry)."""
+
+    def attempt(self, provider: str, outcome: str, error_kind: str | None, latency_s: float) -> None: ...
+
+    def failover(self, alias: str, from_provider: str, to_provider: str) -> None: ...
+
+    def circuit(self, provider: str, state: str) -> None: ...
 
 
 @dataclass
@@ -29,10 +62,32 @@ class StreamHandle:
             await self.rest.aclose()  # type: ignore[attr-defined]
 
 
+def backoff_delay(attempt: int, policy: RetryPolicy, retry_after: float | None = None) -> float | None:
+    """Delay before retry number ``attempt`` (0-based), or None to fail over instead.
+
+    Full jitter (a uniform draw in [0, base * 2^attempt]) spreads retries from
+    many clients so they don't hit a recovering provider in lockstep.
+    """
+    delay = random.uniform(0, min(policy.max_delay, policy.base_delay * (2**attempt)))
+    if retry_after is not None:
+        if retry_after > policy.max_retry_after:
+            return None
+        delay = max(delay, retry_after)
+    return delay
+
+
 class Router:
-    def __init__(self, registry: ProviderRegistry, config: GatewayConfig):
+    def __init__(
+        self,
+        registry: ProviderRegistry,
+        config: GatewayConfig,
+        breakers: CircuitBreakers | None = None,
+        hooks: RouterHooks | None = None,
+    ):
         self.registry = registry
         self.config = config
+        self.breakers = breakers
+        self.hooks = hooks or RouterHooks()
 
     def resolve(self, model: str) -> list[Target]:
         """``fast`` -> its chain; ``provider/model`` -> that single target."""
@@ -48,55 +103,43 @@ class Router:
             code="model_not_found",
         )
 
-    def _first_enabled(self, chain: list[Target], record: RequestRecord) -> Target:
-        for t in chain:
-            p = self.registry.get(t.provider)
-            if p and p.enabled:
-                return t
-            record.attempts.append(Attempt(t.provider, t.model, "skipped_disabled"))
-        raise GatewayError(503, "No configured provider is available for this model.", "api_error", "no_provider")
+    # -- public entry points ------------------------------------------------
 
     async def complete(self, body: dict, chain: list[Target], record: RequestRecord) -> tuple[Target, dict]:
-        target = self._first_enabled(chain, record)
-        provider = self.registry.get(target.provider)
-        to = self.config.timeouts_for(target)
-        started = time.perf_counter()
-        try:
-            async with asyncio.timeout(to.total):
-                resp = await provider.complete(body, target.model, to.connect, to.total)
-        except TimeoutError:
-            err = ProviderError(target.provider, "total_timeout", f"no response within {to.total}s", retryable=True)
-            record.attempts.append(Attempt(target.provider, target.model, "error", _ms(started), err.kind, err.message))
-            raise _to_gateway_error(err) from None
-        except ProviderError as err:
-            record.attempts.append(
-                Attempt(target.provider, target.model, "error", _ms(started), err.kind, err.message, err.status)
-            )
-            raise _to_gateway_error(err) from err
-        record.attempts.append(Attempt(target.provider, target.model, "ok", _ms(started)))
-        return target, resp
+        async def call(provider: Provider, target: Target, to: Timeouts) -> dict:
+            try:
+                async with asyncio.timeout(to.total):
+                    return await provider.complete(body, target.model, to.connect, to.total)
+            except TimeoutError:
+                raise ProviderError(provider.name, "total_timeout", f"no response within {to.total}s", retryable=True) from None
+
+        return await self._run_chain(chain, record, call)
 
     async def open_stream(self, body: dict, chain: list[Target], record: RequestRecord) -> StreamHandle:
-        target = self._first_enabled(chain, record)
-        provider = self.registry.get(target.provider)
-        to = self.config.timeouts_for(target)
-        started = time.perf_counter()
-        it = provider.stream(body, target.model, to.connect, to.idle).__aiter__()
-        prelude: list[dict] = []
-        try:
-            while True:
-                async with asyncio.timeout(to.ttft):
-                    chunk = await it.__anext__()
-                prelude.append(chunk)
-                if chunk_has_output(chunk):
-                    break
-        except (TimeoutError, ProviderError, StopAsyncIteration) as exc:
-            await it.aclose()
-            err = exc if isinstance(exc, ProviderError) else ProviderError(target.provider, "ttft_timeout", "no first token", retryable=True)
-            record.attempts.append(Attempt(target.provider, target.model, "error", _ms(started), err.kind, err.message, err.status))
-            raise _to_gateway_error(err) from None
-        record.attempts.append(Attempt(target.provider, target.model, "ok", _ms(started), ttft_ms=_ms(started)))
-        return StreamHandle(target, prelude, it, to.idle, time.monotonic() + to.total)
+        async def call(provider: Provider, target: Target, to: Timeouts) -> StreamHandle:
+            it = provider.stream(body, target.model, to.connect, to.idle).__aiter__()
+            deadline = time.monotonic() + to.total
+            prelude: list[dict] = []
+            try:
+                async with asyncio.timeout(min(to.ttft, to.total)):
+                    while True:
+                        chunk = await it.__anext__()
+                        prelude.append(chunk)
+                        if chunk_has_output(chunk):
+                            break
+            except TimeoutError:
+                await _safe_aclose(it)
+                raise ProviderError(provider.name, "ttft_timeout", f"no first token within {to.ttft}s", retryable=True) from None
+            except StopAsyncIteration:
+                await _safe_aclose(it)
+                raise ProviderError(provider.name, "empty_stream", "stream ended before any output", retryable=True) from None
+            except BaseException:
+                await _safe_aclose(it)
+                raise
+            return StreamHandle(target, prelude, it, to.idle, deadline)
+
+        _, handle = await self._run_chain(chain, record, call)
+        return handle
 
     async def iterate(self, handle: StreamHandle, record: RequestRecord) -> AsyncIterator[dict]:
         """Yield the buffered prelude, then the rest of the stream under idle/total timeouts."""
@@ -105,26 +148,116 @@ class Router:
                 record.mark_first_token()
             yield chunk
         assert handle.rest is not None
-        while True:
-            remaining = handle.deadline - time.monotonic()
-            if remaining <= 0:
-                raise ProviderError(handle.target.provider, "total_timeout", "stream exceeded total timeout")
-            try:
-                async with asyncio.timeout(min(handle.idle_timeout, remaining)):
-                    chunk = await handle.rest.__anext__()
-            except StopAsyncIteration:
-                return
-            except TimeoutError:
-                raise ProviderError(handle.target.provider, "idle_timeout", "stream stalled") from None
-            yield chunk
+        provider = handle.target.provider
+        try:
+            while True:
+                remaining = handle.deadline - time.monotonic()
+                if remaining <= 0:
+                    raise ProviderError(provider, "total_timeout", "stream exceeded total timeout", retryable=True)
+                try:
+                    async with asyncio.timeout(min(handle.idle_timeout, remaining)):
+                        chunk = await handle.rest.__anext__()
+                except StopAsyncIteration:
+                    return
+                except TimeoutError:
+                    raise ProviderError(provider, "idle_timeout", "stream stalled", retryable=True) from None
+                yield chunk
+        except ProviderError as err:
+            # A provider that dies mid-stream is unhealthy too.
+            if err.counts_as_provider_failure and self.breakers:
+                await self._breaker_failure(provider)
+            raise
+
+    # -- the chain loop -------------------------------------------------------
+
+    async def _run_chain(
+        self,
+        chain: list[Target],
+        record: RequestRecord,
+        call: Callable[[Provider, Target, Timeouts], Awaitable[T]],
+    ) -> tuple[Target, T]:
+        last_err: ProviderError | None = None
+        previous_provider: str | None = None
+        for target in chain:
+            provider = self.registry.get(target.provider)
+            if provider is None or not provider.enabled:
+                record.attempts.append(Attempt(target.provider, target.model, "skipped_disabled"))
+                continue
+            policy = self.config.retry_for(target)
+            to = self.config.timeouts_for(target)
+            for attempt_no in range(policy.max_retries + 1):
+                if self.breakers:
+                    decision = await self.breakers.acquire(target.provider)
+                    self.hooks.circuit(target.provider, decision.state)
+                    if not decision.allowed:
+                        record.attempts.append(Attempt(target.provider, target.model, "skipped_circuit_open"))
+                        break
+                if previous_provider and previous_provider != target.provider and record.alias:
+                    self.hooks.failover(record.alias, previous_provider, target.provider)
+                previous_provider = target.provider
+                started = time.perf_counter()
+                try:
+                    result = await call(provider, target, to)
+                except ProviderError as err:
+                    elapsed = time.perf_counter() - started
+                    last_err = err
+                    record.attempts.append(
+                        Attempt(target.provider, target.model, "error", round(elapsed * 1000, 2), err.kind, err.message[:300], err.status)
+                    )
+                    self.hooks.attempt(target.provider, "error", err.kind, elapsed)
+                    if self.breakers:
+                        if err.counts_as_provider_failure:
+                            await self._breaker_failure(target.provider)
+                        else:
+                            await self.breakers.release(target.provider)
+                    if not err.failover and not err.retryable:
+                        raise _client_error(err) from None
+                    if not err.retryable or attempt_no == policy.max_retries:
+                        break
+                    delay = backoff_delay(attempt_no, policy, err.retry_after)
+                    if delay is None:
+                        break  # Retry-After too long: next target is faster
+                    await asyncio.sleep(delay)
+                    continue
+                except BaseException:
+                    # Cancelled (client went away) or a bug: say nothing about provider health.
+                    if self.breakers:
+                        await asyncio.shield(self.breakers.release(target.provider))
+                    raise
+                elapsed = time.perf_counter() - started
+                ttft = round(elapsed * 1000, 2) if isinstance(result, StreamHandle) else None
+                record.attempts.append(Attempt(target.provider, target.model, "ok", round(elapsed * 1000, 2), ttft_ms=ttft))
+                self.hooks.attempt(target.provider, "ok", None, elapsed)
+                if self.breakers:
+                    state, _ = await self.breakers.success(target.provider)
+                    self.hooks.circuit(target.provider, state)
+                return target, result
+        raise _exhausted_error(last_err, record)
+
+    async def _breaker_failure(self, provider: str) -> None:
+        assert self.breakers is not None
+        state, _ = await self.breakers.failure(provider)
+        self.hooks.circuit(provider, state)
 
 
-def _ms(started: float) -> float:
-    return round((time.perf_counter() - started) * 1000, 2)
+async def _safe_aclose(it: Any) -> None:
+    try:
+        await it.aclose()
+    except Exception:  # noqa: BLE001 - closing is best effort
+        pass
 
 
-def _to_gateway_error(err: ProviderError) -> GatewayError:
-    if not err.failover and not err.retryable and err.status and 400 <= err.status < 500:
-        # The request itself was rejected (e.g. invalid parameters): pass it through.
-        return GatewayError(err.status, f"Upstream rejected the request: {err.message}", code="upstream_invalid_request")
-    return GatewayError(502, f"All providers failed; last error from {err.provider}: {err.kind}", "api_error", "upstream_error")
+def _client_error(err: ProviderError) -> GatewayError:
+    status = err.status if err.status and 400 <= err.status < 500 else 400
+    return GatewayError(status, f"Upstream rejected the request: {err.message}", code="upstream_invalid_request")
+
+
+def _exhausted_error(last: ProviderError | None, record: RequestRecord) -> GatewayError:
+    if last is None:
+        if any(a.outcome == "skipped_circuit_open" for a in record.attempts):
+            return GatewayError(503, "Every provider for this model is temporarily unavailable (circuit open).", "api_error", "circuit_open")
+        return GatewayError(503, "No configured provider is available for this model.", "api_error", "no_provider")
+    if last.kind == "rate_limited":
+        headers = {"retry-after": str(int(last.retry_after or 1))}
+        return GatewayError(429, "All providers are rate limiting this request.", "rate_limit_error", "upstream_rate_limited", headers)
+    return GatewayError(502, f"All providers failed; last error from {last.provider}: {last.kind}.", "api_error", "upstream_error")
