@@ -28,7 +28,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (provider) (rate(gateway_requests_total[1m]))",
+          "expr": "label_replace(sum by (provider) (rate(gateway_requests_total[1m])), \"provider\", \"none (failed)\", \"provider\", \"^$\")",
           "legendFormat": "{{provider}}",
           "instant": false,
           "range": true,
@@ -71,7 +71,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(gateway_requests_total{status=\"error\"}[1m])) / clamp_min(sum(rate(gateway_requests_total[1m])), 1e-9)",
+          "expr": "(sum(rate(gateway_requests_total{status=\"error\"}[1m])) or vector(0)) / clamp_min(sum(rate(gateway_requests_total[1m])), 1e-9)",
           "legendFormat": "error rate",
           "instant": false,
           "range": true,
@@ -114,7 +114,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.5, sum by (le) (rate(gateway_request_duration_seconds_bucket{cache=\"miss\"}[1m])))",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(gateway_request_duration_seconds_bucket{cache!~\"hit.*\"}[1m])))",
           "legendFormat": "p50",
           "instant": false,
           "range": true,
@@ -125,7 +125,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(gateway_request_duration_seconds_bucket{cache=\"miss\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(gateway_request_duration_seconds_bucket{cache!~\"hit.*\"}[1m])))",
           "legendFormat": "p95",
           "instant": false,
           "range": true,
@@ -136,7 +136,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(gateway_request_duration_seconds_bucket{cache=\"miss\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(gateway_request_duration_seconds_bucket{cache!~\"hit.*\"}[1m])))",
           "legendFormat": "p99",
           "instant": false,
           "range": true,
@@ -266,41 +266,35 @@
               "options": {
                 "0": {
                   "text": "closed",
-                  "color": "green"
+                  "color": "green",
+                  "index": 0
                 },
                 "1": {
                   "text": "half-open",
-                  "color": "yellow"
+                  "color": "yellow",
+                  "index": 1
                 },
                 "2": {
                   "text": "open",
-                  "color": "red"
+                  "color": "red",
+                  "index": 2
                 }
               }
             }
           ],
           "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
+            "mode": "fixed",
+            "fixedColor": "green"
           }
         },
         "overrides": []
       },
       "options": {
+        "mergeValues": true,
+        "showValue": "auto",
+        "rowHeight": 0.8,
         "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
+          "showLegend": false
         }
       }
     },

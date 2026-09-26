@@ -1,0 +1,28 @@
+# Public entry point for the deployed demo. Caddy gets and renews the TLS
+# certificate for $DOMAIN automatically (ports 80 and 443 must be open).
+#
+#   https://$DOMAIN/v1/...        the OpenAI-compatible API
+#   https://$DOMAIN/grafana/      dashboards (anonymous, read-only)
+#   https://$DOMAIN/healthz
+#
+# /admin and /metrics are not exposed: reach them over an SSH tunnel
+# (ssh -L 8080:localhost:8080 ubuntu@host) where the gateway listens on
+# 127.0.0.1 only.
+{$DOMAIN} {
+	handle /v1/* {
+		reverse_proxy gateway:8080 {
+			# Stream tokens as they arrive instead of buffering the response.
+			flush_interval -1
+		}
+	}
+	handle /healthz {
+		reverse_proxy gateway:8080
+	}
+	handle /grafana* {
+		reverse_proxy grafana:3000
+	}
+	handle {
+		respond "LLM Gateway demo: see https://github.com/shubham0745/LLM-Gateway" 200
+	}
+	header -Server
+}

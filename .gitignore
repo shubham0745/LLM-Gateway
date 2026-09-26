@@ -8,3 +8,5 @@ models/
 bench/data/raw/
 bench/results/*.tmp
 *.log
+.local-ca.crt
+.gateway-keys.json

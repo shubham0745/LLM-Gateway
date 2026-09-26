@@ -38,15 +38,15 @@ class TenantIn(BaseModel):
     id: str = Field(pattern=r"^[a-zA-Z0-9_.-]{1,64}$")
     name: str
     monthly_budget_usd: float | None = Field(default=None, ge=0)
-    rpm_limit: int | None = Field(default=None, gt=0)
-    tpm_limit: int | None = Field(default=None, gt=0)
+    rpm_limit: int | None = Field(default=None, gt=0, le=2_147_483_647)
+    tpm_limit: int | None = Field(default=None, gt=0, le=2_147_483_647)
 
 
 class TenantPatch(BaseModel):
     name: str | None = None
     monthly_budget_usd: float | None = Field(default=None, ge=0)
-    rpm_limit: int | None = Field(default=None, gt=0)
-    tpm_limit: int | None = Field(default=None, gt=0)
+    rpm_limit: int | None = Field(default=None, gt=0, le=2_147_483_647)
+    tpm_limit: int | None = Field(default=None, gt=0, le=2_147_483_647)
 
 
 class KeyIn(BaseModel):

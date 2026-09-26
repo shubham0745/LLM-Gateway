@@ -39,7 +39,8 @@ def _provider(cls, handler, type_="openai"):
 
 
 async def _collect(agen):
-    return [c async for c in agen]
+    """Flatten the adapter's per-read batches into a list of chunks."""
+    return [c async for batch in agen for c in batch]
 
 
 def test_anthropic_request_translation():
@@ -148,3 +149,28 @@ def test_status_classification(status, retryable, failover):
     assert (ei.value.retryable, ei.value.failover) == (retryable, failover)
     if status == 429:
         assert ei.value.retry_after == 3.0
+
+
+def test_sse_batches_survive_arbitrary_read_boundaries():
+    # Split a stream at every byte position, including inside a multi-byte
+    # character and between \r and \n: the parsed events must not change.
+    from gateway.providers.base import aiter_sse_batches
+
+    body = 'event: a\r\ndata: {"t": "héllo"}\r\n\r\n: comment\n\ndata: x\ndata: y\n\ndata: [DONE]\n\n'.encode()
+
+    class Resp:
+        def __init__(self, parts):
+            self.parts = parts
+
+        async def aiter_bytes(self):
+            for p in self.parts:
+                yield p
+
+    async def events(parts):
+        return [e async for batch in aiter_sse_batches(Resp(parts)) for e in batch]
+
+    expected = [("a", '{"t": "héllo"}'), (None, "x\ny"), (None, "[DONE]")]
+    assert asyncio.run(events([body])) == expected
+    for i in range(1, len(body)):
+        assert asyncio.run(events([body[:i], body[i:]])) == expected, i
+    assert asyncio.run(events([body[i:i + 1] for i in range(len(body))])) == expected

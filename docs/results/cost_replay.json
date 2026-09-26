@@ -1,0 +1,158 @@
+{
+  "requests_per_workload": 3000,
+  "seed": 7,
+  "workloads": {
+    "faq": {
+      "distinct_prompts": 1396,
+      "runs": {
+        "off": {
+          "requests": 3000,
+          "errors": 0,
+          "cache": {
+            "bypass": 3000
+          },
+          "hit_rate": 0.0,
+          "semantic_hits_wrong": 0,
+          "billed_usd_at_mock_price": 0.27745,
+          "billed_tokens": {
+            "prompt": 49664,
+            "completion": 450000
+          },
+          "usd_at": {
+            "gpt-4o-mini": 0.27745,
+            "claude-haiku-4-5": 2.299664,
+            "gpt-4o": 4.62416
+          },
+          "mean_latency_ms": {
+            "bypass": 37.922402798326104
+          }
+        },
+        "exact": {
+          "requests": 3000,
+          "errors": 0,
+          "cache": {
+            "miss": 1402,
+            "hit-exact": 1598
+          },
+          "hit_rate": 0.5327,
+          "semantic_hits_wrong": 0,
+          "billed_usd_at_mock_price": 0.129966,
+          "billed_tokens": {
+            "prompt": 25243,
+            "completion": 210300
+          },
+          "usd_at": {
+            "gpt-4o-mini": 0.129966,
+            "claude-haiku-4-5": 1.076743,
+            "gpt-4o": 2.166107
+          },
+          "mean_latency_ms": {
+            "miss": 37.84519161837409,
+            "hit-exact": 15.376650047572353
+          },
+          "saved_vs_off_pct": 53.16
+        },
+        "exact+semantic": {
+          "requests": 3000,
+          "errors": 0,
+          "cache": {
+            "miss": 1390,
+            "hit-exact": 1581,
+            "hit-semantic": 29
+          },
+          "hit_rate": 0.5367,
+          "semantic_hits_wrong": 0,
+          "billed_usd_at_mock_price": 0.128861,
+          "billed_tokens": {
+            "prompt": 25075,
+            "completion": 208500
+          },
+          "usd_at": {
+            "gpt-4o-mini": 0.128861,
+            "claude-haiku-4-5": 1.067575,
+            "gpt-4o": 2.147687
+          },
+          "mean_latency_ms": {
+            "miss": 93.34169138993478,
+            "hit-exact": 16.64200306263131,
+            "hit-semantic": 69.8334633448369
+          },
+          "saved_vs_off_pct": 53.56
+        }
+      }
+    },
+    "unique": {
+      "distinct_prompts": 3000,
+      "runs": {
+        "off": {
+          "requests": 3000,
+          "errors": 0,
+          "cache": {
+            "bypass": 3000
+          },
+          "hit_rate": 0.0,
+          "semantic_hits_wrong": 0,
+          "billed_usd_at_mock_price": 0.278543,
+          "billed_tokens": {
+            "prompt": 56951,
+            "completion": 450000
+          },
+          "usd_at": {
+            "gpt-4o-mini": 0.278543,
+            "claude-haiku-4-5": 2.306951,
+            "gpt-4o": 4.642378
+          },
+          "mean_latency_ms": {
+            "bypass": 35.94552274699679
+          }
+        },
+        "exact": {
+          "requests": 3000,
+          "errors": 0,
+          "cache": {
+            "miss": 3000
+          },
+          "hit_rate": 0.0,
+          "semantic_hits_wrong": 0,
+          "billed_usd_at_mock_price": 0.278543,
+          "billed_tokens": {
+            "prompt": 56951,
+            "completion": 450000
+          },
+          "usd_at": {
+            "gpt-4o-mini": 0.278543,
+            "claude-haiku-4-5": 2.306951,
+            "gpt-4o": 4.642378
+          },
+          "mean_latency_ms": {
+            "miss": 37.332876818662655
+          },
+          "saved_vs_off_pct": 0.0
+        },
+        "exact+semantic": {
+          "requests": 3000,
+          "errors": 0,
+          "cache": {
+            "miss": 3000
+          },
+          "hit_rate": 0.0,
+          "semantic_hits_wrong": 0,
+          "billed_usd_at_mock_price": 0.278543,
+          "billed_tokens": {
+            "prompt": 56951,
+            "completion": 450000
+          },
+          "usd_at": {
+            "gpt-4o-mini": 0.278543,
+            "claude-haiku-4-5": 2.306951,
+            "gpt-4o": 4.642378
+          },
+          "mean_latency_ms": {
+            "miss": 97.39680527299757
+          },
+          "saved_vs_off_pct": 0.0
+        }
+      }
+    }
+  }
+}

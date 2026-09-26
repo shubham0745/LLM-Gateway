@@ -236,3 +236,22 @@ def test_worker_writes_logs_and_usage_report(gateway_server, make_key):
     assert rep["data"][0]["requests"] == 5
     assert rep["data"][0]["model"] == "mock-small"
     assert rep["total_cost_usd"] > 0
+
+
+def test_state_store_outage_is_a_clean_503(gateway_server, api_key, monkeypatch):
+    # Limits and budgets live in Redis: if it is unreachable the gateway must
+    # refuse with an OpenAI-shaped 503 rather than crash or serve unmetered.
+    import httpx as _httpx
+    from redis.exceptions import ConnectionError as RedisConnectionError
+
+    services = gateway_server.server.config.app.state.services
+
+    async def boom(*a, **kw):
+        raise RedisConnectionError("Connection refused")
+
+    monkeypatch.setattr(services.limits, "admit", boom)
+    r = _httpx.post(f"{gateway_server.url}/v1/chat/completions", headers={"authorization": f"Bearer {api_key}", "x-gateway-cache": "no-store"},
+                    json={"model": "mock", "messages": [{"role": "user", "content": "hi"}]}, timeout=10)
+    assert r.status_code == 503
+    assert r.json()["error"]["code"] == "state_store_unavailable"
+    assert r.headers["retry-after"] == "5"

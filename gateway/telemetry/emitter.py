@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import json
 import logging
 
+import orjson
 from redis.asyncio import Redis
 
 from gateway.telemetry.logging import log_fields
@@ -104,7 +104,7 @@ class Telemetry:
                 async with self.redis.pipeline(transaction=False) as pipe:
                     for ev in batch:
                         kind = ev.pop("_kind", "request")
-                        pipe.xadd(self.stream, {"kind": kind, "data": json.dumps(ev, default=str)}, maxlen=self.maxlen, approximate=True)
+                        pipe.xadd(self.stream, {"kind": kind, "data": orjson.dumps(ev, default=str)}, maxlen=self.maxlen, approximate=True)
                     await pipe.execute()
             except Exception:  # noqa: BLE001 - Redis hiccup: log and keep going
                 logger.warning("failed to publish %d events to %s", len(batch), self.stream, exc_info=True)

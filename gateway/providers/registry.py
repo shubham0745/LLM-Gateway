@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import os
 
 import httpx
@@ -18,22 +19,46 @@ _ADAPTERS: dict[str, type[Provider]] = {
 }
 
 
-def make_client(max_connections: int = 1000) -> httpx.AsyncClient:
-    # One pooled client per provider: keep-alive connections are reused across
-    # requests, which saves a TLS handshake (~50-150 ms) on every call.
-    limits = httpx.Limits(max_connections=max_connections, max_keepalive_connections=max_connections, keepalive_expiry=60)
-    return httpx.AsyncClient(limits=limits, http2=False, trust_env=True)
+POOL_SHARDS = 16
+
+
+class ClientPool:
+    """Several pooled httpx clients for one provider, used round-robin.
+
+    Keep-alive connections save a TCP (and TLS) handshake on every call, but
+    httpcore's pool checks every idle connection each time it hands one out,
+    so one pool holding hundreds of connections costs O(connections) per
+    request; under load that scan was the gateway's biggest CPU cost. Splitting
+    the connections across shards keeps each scan short.
+    """
+
+    def __init__(self, max_connections: int = 1000, shards: int = POOL_SHARDS):
+        per = max(1, -(-max_connections // shards))
+        limits = httpx.Limits(max_connections=per, max_keepalive_connections=per, keepalive_expiry=60)
+        self.clients = [httpx.AsyncClient(limits=limits, http2=False, trust_env=True) for _ in range(shards)]
+        self._next = itertools.cycle(self.clients)
+
+    def pick(self) -> httpx.AsyncClient:
+        return next(self._next)
+
+    async def aclose(self) -> None:
+        for c in self.clients:
+            await c.aclose()
+
+
+def make_client(max_connections: int = 1000) -> ClientPool:
+    return ClientPool(max_connections)
 
 
 class ProviderRegistry:
     def __init__(self) -> None:
         self._providers: dict[str, Provider] = {}
-        self._clients: dict[str, tuple[ProviderConfig, httpx.AsyncClient]] = {}
+        self._clients: dict[str, tuple[ProviderConfig, ClientPool]] = {}
 
     def apply(self, config: GatewayConfig) -> None:
         """(Re)build adapters for a new config version, reusing HTTP pools where unchanged."""
         providers: dict[str, Provider] = {}
-        clients: dict[str, tuple[ProviderConfig, httpx.AsyncClient]] = {}
+        clients: dict[str, tuple[ProviderConfig, ClientPool]] = {}
         for name, pcfg in config.providers.items():
             prev = self._clients.get(name)
             if prev and prev[0] == pcfg:
@@ -61,7 +86,7 @@ class ProviderRegistry:
             await client.aclose()
 
 
-def _schedule_close(client: httpx.AsyncClient, delay: float = 300.0) -> None:
+def _schedule_close(client: ClientPool, delay: float = 300.0) -> None:
     import asyncio
 
     async def _close() -> None:

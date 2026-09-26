@@ -10,7 +10,7 @@ Translation rules (OpenAI -> Anthropic):
     not supported in v1 and raise a failover error so the router can try an
     OpenAI-compatible target instead
 
-Streaming events are converted chunk by chunk:
+Streaming events are converted chunk by chunk (and yielded in per-read batches):
   message_start        -> remembers input tokens (usage)
   content_block_delta  -> one OpenAI chunk per text delta
   message_delta        -> stop_reason and output tokens
@@ -27,7 +27,7 @@ from typing import Any
 import httpx
 
 from gateway.errors import ProviderError
-from gateway.providers.base import Provider, aiter_sse, close_response, loads_or_error, make_chunk, usage_chunk
+from gateway.providers.base import Provider, aiter_sse_batches, close_response, drain, loads_or_error, make_chunk, usage_chunk
 
 ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_MAX_TOKENS = 1024
@@ -171,13 +171,14 @@ class AnthropicProvider(Provider):
 
     async def stream(
         self, body: dict[str, Any], model: str, connect_timeout: float, read_timeout: float
-    ) -> AsyncIterator[dict]:
+    ) -> AsyncIterator[list[dict]]:
         payload = to_anthropic_request(self.name, body, model, stream=True)
-        req = self.client.build_request(
+        client = self.client
+        req = client.build_request(
             "POST", self._url, json=payload, headers=self._headers(), timeout=self._timeout(connect_timeout, read_timeout)
         )
         try:
-            resp = await self.client.send(req, stream=True)
+            resp = await client.send(req, stream=True)
         except httpx.HTTPError as exc:
             raise self._wrap_transport_error(exc) from exc
 
@@ -187,54 +188,63 @@ class AnthropicProvider(Provider):
         sent_role = False
         try:
             await self._raise_for_status(resp)
-            async for event, data in aiter_sse(resp):
-                msg = loads_or_error(self.name, data)
-                etype = msg.get("type") or event
-                if etype == "message_start":
-                    m = msg.get("message") or {}
-                    completion_id = m.get("id", "")
-                    served_model = m.get("model", model)
-                    input_tokens = _input_tokens(m.get("usage") or {})
-                    output_tokens = int((m.get("usage") or {}).get("output_tokens") or 0)
-                elif etype == "content_block_delta":
-                    delta = msg.get("delta") or {}
-                    if delta.get("type") == "text_delta" and delta.get("text"):
-                        yield make_chunk(
+            batches = aiter_sse_batches(resp)
+            async for batch in batches:
+                out: list[dict] = []
+                for event, data in batch:
+                    msg = loads_or_error(self.name, data)
+                    etype = msg.get("type") or event
+                    if etype == "message_start":
+                        m = msg.get("message") or {}
+                        completion_id = m.get("id", "")
+                        served_model = m.get("model", model)
+                        input_tokens = _input_tokens(m.get("usage") or {})
+                        output_tokens = int((m.get("usage") or {}).get("output_tokens") or 0)
+                    elif etype == "content_block_delta":
+                        delta = msg.get("delta") or {}
+                        if delta.get("type") == "text_delta" and delta.get("text"):
+                            out.append(make_chunk(
+                                completion_id,
+                                served_model,
+                                created,
+                                role=None if sent_role else "assistant",
+                                content=delta["text"],
+                            ))
+                            sent_role = True
+                        # thinking / signature / input_json deltas are not surfaced in v1
+                    elif etype == "message_delta":
+                        stop_reason = (msg.get("delta") or {}).get("stop_reason") or stop_reason
+                        usage = msg.get("usage") or {}
+                        if usage.get("output_tokens") is not None:
+                            output_tokens = int(usage["output_tokens"])
+                        if usage.get("input_tokens") is not None:
+                            input_tokens = _input_tokens(usage)
+                    elif etype == "message_stop":
+                        out.append(make_chunk(
                             completion_id,
                             served_model,
                             created,
                             role=None if sent_role else "assistant",
-                            content=delta["text"],
+                            finish_reason=STOP_REASON_MAP.get(stop_reason or "", "stop"),
+                        ))
+                        out.append(usage_chunk(completion_id, served_model, input_tokens, output_tokens))
+                        yield out
+                        await drain(batches)
+                        return
+                    elif etype == "error":
+                        if out:
+                            yield out
+                        err = msg.get("error") or {}
+                        kind = err.get("type", "stream_error")
+                        raise ProviderError(
+                            self.name,
+                            kind,
+                            str(err.get("message", ""))[:300],
+                            retryable=kind in ("overloaded_error", "api_error", "rate_limit_error"),
                         )
-                        sent_role = True
-                    # thinking / signature / input_json deltas are not surfaced in v1
-                elif etype == "message_delta":
-                    stop_reason = (msg.get("delta") or {}).get("stop_reason") or stop_reason
-                    usage = msg.get("usage") or {}
-                    if usage.get("output_tokens") is not None:
-                        output_tokens = int(usage["output_tokens"])
-                    if usage.get("input_tokens") is not None:
-                        input_tokens = _input_tokens(usage)
-                elif etype == "message_stop":
-                    yield make_chunk(
-                        completion_id,
-                        served_model,
-                        created,
-                        role=None if sent_role else "assistant",
-                        finish_reason=STOP_REASON_MAP.get(stop_reason or "", "stop"),
-                    )
-                    yield usage_chunk(completion_id, served_model, input_tokens, output_tokens)
-                    return
-                elif etype == "error":
-                    err = msg.get("error") or {}
-                    kind = err.get("type", "stream_error")
-                    raise ProviderError(
-                        self.name,
-                        kind,
-                        str(err.get("message", ""))[:300],
-                        retryable=kind in ("overloaded_error", "api_error", "rate_limit_error"),
-                    )
-                # ping, content_block_start, content_block_stop: nothing to emit
+                    # ping, content_block_start, content_block_stop: nothing to emit
+                if out:
+                    yield out
             raise ProviderError(self.name, "stream_truncated", "stream ended before message_stop", retryable=True)
         except httpx.HTTPError as exc:
             raise self._wrap_transport_error(exc) from exc

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import time
 from collections.abc import AsyncIterator
 from typing import Any
 
+import orjson
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 
@@ -57,8 +57,8 @@ def _services(request: Request) -> Services:
 
 async def _parse_body(request: Request) -> dict[str, Any]:
     try:
-        body = await request.json()
-    except (json.JSONDecodeError, UnicodeDecodeError):
+        body = orjson.loads(await request.body())
+    except orjson.JSONDecodeError:
         raise GatewayError(400, "Request body must be valid JSON.") from None
     if not isinstance(body, dict):
         raise GatewayError(400, "Request body must be a JSON object.")
@@ -253,7 +253,7 @@ def _split_for_replay(text: str, words_per_chunk: int = 3) -> list[str]:
 
 
 def _sse(obj: dict) -> bytes:
-    return b"data: " + json.dumps(obj, separators=(",", ":")).encode() + b"\n\n"
+    return b"data: " + orjson.dumps(obj) + b"\n\n"
 
 
 def _finalize(svc: Services, record: RequestRecord, reservation: Reservation | None) -> None:
@@ -280,22 +280,26 @@ async def _relay_stream(
     finish_reason: str | None = None
     tool_calls = False
     try:
-        async for chunk in svc.router.iterate(handle, record):
-            if chunk.get("usage"):
-                usage = chunk["usage"]
-            if not chunk.get("choices"):
-                continue  # usage-only chunk; re-emitted below if the caller asked for it
-            chunk["id"] = completion_id
-            chunk["model"] = record.model
-            chunk.pop("usage", None)
-            for choice in chunk["choices"]:
-                delta = choice.get("delta") or {}
-                if delta.get("content"):
-                    text_parts.append(delta["content"])
-                if delta.get("tool_calls"):
-                    tool_calls = True
-                finish_reason = choice.get("finish_reason") or finish_reason
-            yield b"data: " + json.dumps(chunk, separators=(",", ":")).encode() + b"\n\n"
+        async for batch in svc.router.iterate(handle, record):
+            out: list[bytes] = []
+            for chunk in batch:
+                if chunk.get("usage"):
+                    usage = chunk["usage"]
+                if not chunk.get("choices"):
+                    continue  # usage-only chunk; re-emitted below if the caller asked for it
+                chunk["id"] = completion_id
+                chunk["model"] = record.model
+                chunk.pop("usage", None)
+                for choice in chunk["choices"]:
+                    delta = choice.get("delta") or {}
+                    if delta.get("content"):
+                        text_parts.append(delta["content"])
+                    if delta.get("tool_calls"):
+                        tool_calls = True
+                    finish_reason = choice.get("finish_reason") or finish_reason
+                out.append(_sse(chunk))
+            if out:
+                yield b"".join(out)  # one write per upstream read, not per token
         _apply_usage(record, usage, body, "".join(text_parts))
         if not tool_calls:
             _maybe_store(svc, record, lookup, "".join(text_parts), finish_reason, None)
@@ -307,7 +311,7 @@ async def _relay_stream(
             }
             final = {"id": completion_id, "object": "chat.completion.chunk", "created": int(time.time()),
                      "model": record.model, "choices": [], "usage": u}
-            yield b"data: " + json.dumps(final, separators=(",", ":")).encode() + b"\n\n"
+            yield _sse(final)
         yield b"data: [DONE]\n\n"
         completed = True
     except (TimeoutError, ProviderError) as exc:
@@ -320,7 +324,7 @@ async def _relay_stream(
         _apply_usage(record, None, body, "".join(text_parts))
         err = {"error": {"message": f"Upstream stream failed after output started ({kind}).",
                          "type": "api_error", "code": "upstream_stream_error", "param": None}}
-        yield b"data: " + json.dumps(err).encode() + b"\n\n"
+        yield _sse(err)
         completed = True
     finally:
         if not completed:

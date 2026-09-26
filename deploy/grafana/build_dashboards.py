@@ -56,20 +56,26 @@ def dashboard(uid: str, title: str, panels: list[dict], time_from: str = "now-15
 def live() -> dict:
     rate = "[1m]"
     p = [
-        panel("Requests / s by provider", [prom(f'sum by (provider) (rate(gateway_requests_total{rate}))', "{{provider}}")], 0, 0, unit="reqps"),
+        panel("Requests / s by provider", [prom(
+            f'label_replace(sum by (provider) (rate(gateway_requests_total{rate})), "provider", "none (failed)", "provider", "^$")',
+            "{{provider}}")], 0, 0, unit="reqps"),
         panel("Error rate (all requests)", [prom(
-            f'sum(rate(gateway_requests_total{{status="error"}}{rate})) / clamp_min(sum(rate(gateway_requests_total{rate})), 1e-9)', "error rate")],
+            f'(sum(rate(gateway_requests_total{{status="error"}}{rate})) or vector(0)) / clamp_min(sum(rate(gateway_requests_total{rate})), 1e-9)', "error rate")],
             12, 0, unit="percentunit"),
         panel("End-to-end latency p50 / p95 / p99", [
-            prom(f'histogram_quantile({q}, sum by (le) (rate(gateway_request_duration_seconds_bucket{{cache="miss"}}{rate})))', f"p{int(q * 100)}")
+            prom(f'histogram_quantile({q}, sum by (le) (rate(gateway_request_duration_seconds_bucket{{cache!~"hit.*"}}{rate})))', f"p{int(q * 100)}")
             for q in (0.5, 0.95, 0.99)], 0, 8, unit="s"),
         panel("Time to first token p50 / p95 / p99 (streams)", [
             prom(f'histogram_quantile({q}, sum by (le) (rate(gateway_ttft_seconds_bucket{rate})))', f"p{int(q * 100)}")
             for q in (0.5, 0.95, 0.99)], 12, 8, unit="s"),
         panel("Circuit state per provider (0 closed, 1 half-open, 2 open)", [prom("gateway_circuit_state", "{{provider}}")], 0, 16,
               kind="state-timeline", fieldConfig={"defaults": {"unit": "short", "mappings": [{"type": "value", "options": {
-                  "0": {"text": "closed", "color": "green"}, "1": {"text": "half-open", "color": "yellow"}, "2": {"text": "open", "color": "red"}}}],
-                  "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": None}]}}, "overrides": []}),
+                  "0": {"text": "closed", "color": "green", "index": 0}, "1": {"text": "half-open", "color": "yellow", "index": 1},
+                  "2": {"text": "open", "color": "red", "index": 2}}}],
+                  # Colours come from the value mappings; a thresholds colour mode would make the
+                  # state timeline label bars with threshold ranges ("2+") instead of the mapped text.
+                  "color": {"mode": "fixed", "fixedColor": "green"}}, "overrides": []},
+              options={"mergeValues": True, "showValue": "auto", "rowHeight": 0.8, "legend": {"showLegend": False}}),
         panel("Failovers / s", [prom(f'sum by (from_provider, to_provider) (rate(gateway_failovers_total{rate}))', "{{from_provider}} → {{to_provider}}")],
               12, 16, unit="ops"),
         panel("Upstream attempts by outcome", [prom(f'sum by (provider, outcome, error_kind) (rate(gateway_provider_attempts_total{rate}))',
@@ -94,23 +100,29 @@ def live() -> dict:
     return dashboard("gateway-live", "LLM Gateway — Live", p)
 
 
+BARS = {"defaults": {"unit": "currencyUSD", "custom": {"drawStyle": "bars", "fillOpacity": 80, "stacking": {"mode": "normal"}}},
+        "overrides": []}
+
+
 def spend() -> dict:
     yesterday = "ts >= date_trunc('day', now() AT TIME ZONE 'utc') - interval '1 day' AND ts < date_trunc('day', now() AT TIME ZONE 'utc')"
     p = [
         panel("Yesterday (UTC): who spent how much, on which model", [sql(f"""
-SELECT tenant_id AS tenant, model, count(*) AS requests,
+SELECT tenant_id AS tenant, coalesce(model, '(failed)') AS model, count(*) AS requests,
        sum(prompt_tokens) AS prompt_tokens, sum(completion_tokens) AS completion_tokens,
        round(sum(cost_usd)::numeric, 6) AS cost_usd, round(sum(saved_usd)::numeric, 6) AS saved_by_cache_usd
 FROM request_logs WHERE {yesterday}
 GROUP BY 1, 2 ORDER BY cost_usd DESC""")], 0, 0, w=24, h=9, kind="table", ds=PG),
         panel("Spend per tenant (selected range)", [sql("""
-SELECT $__timeGroupAlias(ts, '1h'), tenant_id AS metric, sum(cost_usd)::float AS value
-FROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1""", "time_series")], 0, 9, ds=PG, unit="currencyUSD"),
+SELECT $__timeGroupAlias(ts, $__interval), tenant_id AS metric, sum(cost_usd)::float AS value
+FROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1""", "time_series")], 0, 9, ds=PG, unit="currencyUSD",
+              fieldConfig=BARS),
         panel("Spend per model (selected range)", [sql("""
-SELECT $__timeGroupAlias(ts, '1h'), coalesce(model, 'none') AS metric, sum(cost_usd)::float AS value
-FROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1""", "time_series")], 12, 9, ds=PG, unit="currencyUSD"),
+SELECT $__timeGroupAlias(ts, $__interval), coalesce(model, '(failed)') AS metric, sum(cost_usd)::float AS value
+FROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1""", "time_series")], 12, 9, ds=PG, unit="currencyUSD",
+              fieldConfig=BARS),
         panel("Spend by tenant and model (selected range)", [sql("""
-SELECT tenant_id AS tenant, model, count(*) AS requests, round(sum(cost_usd)::numeric, 6) AS cost_usd,
+SELECT tenant_id AS tenant, coalesce(model, '(failed)') AS model, count(*) AS requests, round(sum(cost_usd)::numeric, 6) AS cost_usd,
        round(sum(saved_usd)::numeric, 6) AS saved_usd,
        round(100.0 * count(*) FILTER (WHERE cache_status LIKE 'hit%') / count(*), 1) AS cache_hit_pct
 FROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY cost_usd DESC""")], 0, 17, w=24, kind="table", ds=PG),
@@ -118,7 +130,8 @@ FROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY cost_usd DESC""
 SELECT ts, request_id, tenant_id, alias, provider, model, prompt_tokens, completion_tokens, cost_usd::float, latency_ms
 FROM request_logs WHERE $__timeFilter(ts) ORDER BY cost_usd DESC LIMIT 20""")], 0, 25, w=24, kind="table", ds=PG),
         panel("Requests that needed a failover (selected range)", [sql("""
-SELECT ts, request_id, alias, provider AS served_by, jsonb_array_length(attempts) AS attempts, attempts
+SELECT ts, request_id, alias, coalesce(provider, '(failed)') AS served_by, jsonb_array_length(attempts) AS attempts,
+       attempts::text AS attempt_log
 FROM request_logs WHERE $__timeFilter(ts) AND jsonb_array_length(attempts) > 1 ORDER BY ts DESC LIMIT 50""")],
               0, 33, w=24, kind="table", ds=PG),
     ]

@@ -8,7 +8,7 @@ from typing import Any
 import httpx
 
 from gateway.errors import ProviderError
-from gateway.providers.base import Provider, aiter_sse, close_response, loads_or_error
+from gateway.providers.base import Provider, aiter_sse_batches, close_response, drain, loads_or_error
 
 # Fields the gateway consumes itself and never forwards upstream.
 _GATEWAY_ONLY_FIELDS = {"stream", "stream_options", "model"}
@@ -55,8 +55,9 @@ class OpenAICompatProvider(Provider):
 
     async def stream(
         self, body: dict[str, Any], model: str, connect_timeout: float, read_timeout: float
-    ) -> AsyncIterator[dict]:
-        req = self.client.build_request(
+    ) -> AsyncIterator[list[dict]]:
+        client = self.client
+        req = client.build_request(
             "POST",
             self._url,
             json=self._body(body, model, stream=True),
@@ -64,24 +65,34 @@ class OpenAICompatProvider(Provider):
             timeout=self._timeout(connect_timeout, read_timeout),
         )
         try:
-            resp = await self.client.send(req, stream=True)
+            resp = await client.send(req, stream=True)
         except httpx.HTTPError as exc:
             raise self._wrap_transport_error(exc) from exc
         try:
             await self._raise_for_status(resp)
-            finished = False
-            async for _event, data in aiter_sse(resp):
-                if data == "[DONE]":
-                    finished = True
+            finished = done = False
+            batches = aiter_sse_batches(resp)
+            async for batch in batches:
+                out: list[dict] = []
+                for _event, data in batch:
+                    if data == "[DONE]":
+                        finished = done = True
+                        break
+                    chunk = loads_or_error(self.name, data)
+                    if "error" in chunk:
+                        if out:
+                            yield out
+                        err = chunk["error"] or {}
+                        raise ProviderError(self.name, "stream_error", str(err.get("message", err))[:300], retryable=True)
+                    for choice in chunk.get("choices") or []:
+                        if choice.get("finish_reason"):
+                            finished = True
+                    out.append(chunk)
+                if out:
+                    yield out
+                if done:
+                    await drain(batches)
                     break
-                chunk = loads_or_error(self.name, data)
-                if "error" in chunk:
-                    err = chunk["error"] or {}
-                    raise ProviderError(self.name, "stream_error", str(err.get("message", err))[:300], retryable=True)
-                for choice in chunk.get("choices") or []:
-                    if choice.get("finish_reason"):
-                        finished = True
-                yield chunk
             if not finished:
                 raise ProviderError(self.name, "stream_truncated", "stream ended before a finish", retryable=True)
         except httpx.HTTPError as exc:

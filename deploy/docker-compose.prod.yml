@@ -1,0 +1,45 @@
+# Production overrides for a single EC2 host (see docs/deploy-aws.md):
+#
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --build
+#
+# Differences from the local setup: Caddy terminates TLS on 80/443; every
+# other service listens on 127.0.0.1 only (admin API, Prometheus and the mock
+# are reachable over an SSH tunnel, never from the internet); secrets are
+# required instead of defaulted.
+
+services:
+  gateway:
+    ports: !override ["127.0.0.1:8080:8080"]
+    environment:
+      GATEWAY_ADMIN_TOKEN: ${GATEWAY_ADMIN_TOKEN:?set GATEWAY_ADMIN_TOKEN in .env}
+      GATEWAY_KEY_PEPPER: ${GATEWAY_KEY_PEPPER:?set GATEWAY_KEY_PEPPER in .env}
+
+  mock:
+    ports: !override ["127.0.0.1:9000:9000"]
+
+  prometheus:
+    ports: !override ["127.0.0.1:9090:9090"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+
+  grafana:
+    ports: !override ["127.0.0.1:3000:3000"]
+    environment:
+      GF_SERVER_ROOT_URL: https://${DOMAIN:?set DOMAIN in .env}/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
+
+  caddy:
+    image: caddy:2.8
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    depends_on: [gateway, grafana]
+    restart: unless-stopped
+
+volumes:
+  caddydata:

@@ -5,10 +5,12 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
+import asyncpg
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from redis.asyncio import BlockingConnectionPool, Redis
+from redis.exceptions import RedisError
 
 from gateway import db
 from gateway.api import admin_routes, openai_routes
@@ -26,7 +28,7 @@ from gateway.routing.router import Router
 from gateway.services import Services
 from gateway.telemetry.emitter import Telemetry
 from gateway.telemetry.logging import setup_logging
-from gateway.telemetry.metrics import Metrics
+from gateway.telemetry.metrics import Metrics, exposition_registry
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +110,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def _gateway_error(_: Request, exc: GatewayError) -> JSONResponse:
         return exc.response()
 
+    @app.exception_handler(RedisError)
+    @app.exception_handler(asyncpg.PostgresError)
+    @app.exception_handler(asyncpg.InterfaceError)
+    @app.exception_handler(ConnectionError)
+    async def _state_store_down(_: Request, exc: Exception) -> JSONResponse:
+        # Without Redis or Postgres the gateway cannot enforce limits and
+        # budgets, so it refuses (503) rather than forwarding unmetered traffic.
+        logger.error("state store unavailable: %s: %s", type(exc).__name__, exc)
+        return GatewayError(503, "The gateway's state store is unavailable; try again shortly.", "api_error",
+                            "state_store_unavailable", {"retry-after": "5"}).response()
+
     @app.get("/healthz")
     async def healthz() -> dict:
         return {"status": "ok"}
@@ -125,7 +138,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/metrics")
     async def metrics_endpoint(request: Request) -> Response:
         svc: Services = request.app.state.services
-        return Response(generate_latest(svc.telemetry.metrics.registry), media_type=CONTENT_TYPE_LATEST)
+        return Response(generate_latest(exposition_registry(svc.telemetry.metrics.registry)), media_type=CONTENT_TYPE_LATEST)
 
     app.include_router(openai_routes.router)
     app.include_router(admin_routes.router)

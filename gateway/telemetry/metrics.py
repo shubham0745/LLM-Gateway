@@ -7,6 +7,8 @@ series cardinality stays small.
 
 from __future__ import annotations
 
+import os
+
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 
 from gateway.routing.breaker import STATE_VALUE
@@ -14,6 +16,22 @@ from gateway.routing.router import RouterHooks
 
 LATENCY_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 30, 60, 120)
 FAST_BUCKETS = (0.0005, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1)
+
+
+def exposition_registry(own: CollectorRegistry) -> CollectorRegistry:
+    """The registry /metrics should render.
+
+    With several worker processes (``GATEWAY_WORKERS`` > 1, see
+    ``gateway/serve.py``) prometheus_client writes every value to files in
+    ``PROMETHEUS_MULTIPROC_DIR`` and the scrape aggregates all processes.
+    """
+    if not os.environ.get("PROMETHEUS_MULTIPROC_DIR"):
+        return own
+    from prometheus_client import multiprocess
+
+    r = CollectorRegistry()
+    multiprocess.MultiProcessCollector(r)
+    return r
 
 
 class Metrics(RouterHooks):
@@ -41,7 +59,8 @@ class Metrics(RouterHooks):
             "gateway_failovers_total", "Moves to the next target in a chain", ["alias", "from_provider", "to_provider"], registry=r
         )
         self.circuit_state = Gauge(
-            "gateway_circuit_state", "Circuit breaker state (0 closed, 1 half-open, 2 open)", ["provider"], registry=r
+            "gateway_circuit_state", "Circuit breaker state (0 closed, 1 half-open, 2 open)", ["provider"], registry=r,
+            multiprocess_mode="mostrecent",
         )
         self.tokens = Counter("gateway_tokens_total", "Tokens billed", ["tenant", "model", "kind"], registry=r)
         self.cost = Counter("gateway_cost_usd_total", "Spend in USD", ["tenant", "model"], registry=r)
@@ -51,11 +70,12 @@ class Metrics(RouterHooks):
             "gateway_cache_lookup_duration_seconds", "Cache lookup latency", ["cache"], buckets=FAST_BUCKETS, registry=r
         )
         self.rejected = Counter("gateway_rejected_total", "Requests rejected by limits", ["tenant", "reason"], registry=r)
-        self.inflight = Gauge("gateway_inflight_requests", "Requests in progress (streams until their last byte)", registry=r)
-        self.budget_spent = Gauge("gateway_budget_spent_usd", "Spend this month", ["tenant"], registry=r)
-        self.budget_limit = Gauge("gateway_budget_limit_usd", "Monthly budget", ["tenant"], registry=r)
+        self.inflight = Gauge("gateway_inflight_requests", "Requests in progress (streams until their last byte)", registry=r,
+                              multiprocess_mode="livesum")
+        self.budget_spent = Gauge("gateway_budget_spent_usd", "Spend this month", ["tenant"], registry=r, multiprocess_mode="mostrecent")
+        self.budget_limit = Gauge("gateway_budget_limit_usd", "Monthly budget", ["tenant"], registry=r, multiprocess_mode="mostrecent")
         self.events_dropped = Counter("gateway_events_dropped_total", "Log events dropped (queue full)", registry=r)
-        self.config_version = Gauge("gateway_config_version", "Active config version", registry=r)
+        self.config_version = Gauge("gateway_config_version", "Active config version", registry=r, multiprocess_mode="max")
 
     # -- RouterHooks --------------------------------------------------------
 

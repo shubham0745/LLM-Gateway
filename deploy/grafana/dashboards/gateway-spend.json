@@ -28,7 +28,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "postgres"
           },
-          "rawSql": "\nSELECT tenant_id AS tenant, model, count(*) AS requests,\n       sum(prompt_tokens) AS prompt_tokens, sum(completion_tokens) AS completion_tokens,\n       round(sum(cost_usd)::numeric, 6) AS cost_usd, round(sum(saved_usd)::numeric, 6) AS saved_by_cache_usd\nFROM request_logs WHERE ts >= date_trunc('day', now() AT TIME ZONE 'utc') - interval '1 day' AND ts < date_trunc('day', now() AT TIME ZONE 'utc')\nGROUP BY 1, 2 ORDER BY cost_usd DESC",
+          "rawSql": "\nSELECT tenant_id AS tenant, coalesce(model, '(failed)') AS model, count(*) AS requests,\n       sum(prompt_tokens) AS prompt_tokens, sum(completion_tokens) AS completion_tokens,\n       round(sum(cost_usd)::numeric, 6) AS cost_usd, round(sum(saved_usd)::numeric, 6) AS saved_by_cache_usd\nFROM request_logs WHERE ts >= date_trunc('day', now() AT TIME ZONE 'utc') - interval '1 day' AND ts < date_trunc('day', now() AT TIME ZONE 'utc')\nGROUP BY 1, 2 ORDER BY cost_usd DESC",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code",
@@ -71,7 +71,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "postgres"
           },
-          "rawSql": "\nSELECT $__timeGroupAlias(ts, '1h'), tenant_id AS metric, sum(cost_usd)::float AS value\nFROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1",
+          "rawSql": "\nSELECT $__timeGroupAlias(ts, $__interval), tenant_id AS metric, sum(cost_usd)::float AS value\nFROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1",
           "format": "time_series",
           "rawQuery": true,
           "editorMode": "code",
@@ -86,7 +86,14 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "currencyUSD"
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
         },
         "overrides": []
       },
@@ -114,7 +121,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "postgres"
           },
-          "rawSql": "\nSELECT $__timeGroupAlias(ts, '1h'), coalesce(model, 'none') AS metric, sum(cost_usd)::float AS value\nFROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1",
+          "rawSql": "\nSELECT $__timeGroupAlias(ts, $__interval), coalesce(model, '(failed)') AS metric, sum(cost_usd)::float AS value\nFROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY 1",
           "format": "time_series",
           "rawQuery": true,
           "editorMode": "code",
@@ -129,7 +136,14 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "currencyUSD"
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
         },
         "overrides": []
       },
@@ -157,7 +171,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "postgres"
           },
-          "rawSql": "\nSELECT tenant_id AS tenant, model, count(*) AS requests, round(sum(cost_usd)::numeric, 6) AS cost_usd,\n       round(sum(saved_usd)::numeric, 6) AS saved_usd,\n       round(100.0 * count(*) FILTER (WHERE cache_status LIKE 'hit%') / count(*), 1) AS cache_hit_pct\nFROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY cost_usd DESC",
+          "rawSql": "\nSELECT tenant_id AS tenant, coalesce(model, '(failed)') AS model, count(*) AS requests, round(sum(cost_usd)::numeric, 6) AS cost_usd,\n       round(sum(saved_usd)::numeric, 6) AS saved_usd,\n       round(100.0 * count(*) FILTER (WHERE cache_status LIKE 'hit%') / count(*), 1) AS cache_hit_pct\nFROM request_logs WHERE $__timeFilter(ts) GROUP BY 1, 2 ORDER BY cost_usd DESC",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code",
@@ -243,7 +257,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "postgres"
           },
-          "rawSql": "\nSELECT ts, request_id, alias, provider AS served_by, jsonb_array_length(attempts) AS attempts, attempts\nFROM request_logs WHERE $__timeFilter(ts) AND jsonb_array_length(attempts) > 1 ORDER BY ts DESC LIMIT 50",
+          "rawSql": "\nSELECT ts, request_id, alias, coalesce(provider, '(failed)') AS served_by, jsonb_array_length(attempts) AS attempts,\n       attempts::text AS attempt_log\nFROM request_logs WHERE $__timeFilter(ts) AND jsonb_array_length(attempts) > 1 ORDER BY ts DESC LIMIT 50",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code",

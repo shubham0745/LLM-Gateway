@@ -167,6 +167,40 @@ def test_midstream_disconnect_ends_with_error_event(client, mock_control):
     assert "after output started" in str(ei.value)
 
 
+def _stream_fails_midway(client) -> bool:
+    try:
+        for _ in client.chat.completions.create(model="mock", messages=[{"role": "user", "content": "x"}], stream=True):
+            pass
+    except openai.APIError:
+        return True
+    return False
+
+
+def test_midstream_failures_open_the_circuit(client, gateway_server, mock_control, mock_stats):
+    # First tokens arrive every time, then the connection drops. Counting the
+    # first token as a success would reset the failure count on every request
+    # and the breaker would never open.
+    mock_control("primary", mode="midstream_disconnect", disconnect_after_tokens=2)
+    mock_control("backup", ttft_ms=0, tokens_per_s=1_000_000)
+    assert all(_stream_fails_midway(client) for _ in range(3))  # threshold is 3
+    circuits = httpx.get(f"{gateway_server.url}/admin/circuits", headers={"authorization": "Bearer test-admin"}).json()
+    assert circuits["mock-primary"]["state"] == "open"
+    assert not _stream_fails_midway(client)  # now served by the backup
+
+
+def test_half_open_probe_that_dies_midstream_reopens(client, gateway_server, mock_control, mock_stats):
+    mock_control("primary", mode="midstream_disconnect", disconnect_after_tokens=2)
+    mock_control("backup", ttft_ms=0, tokens_per_s=1_000_000)
+    for _ in range(3):
+        _stream_fails_midway(client)
+    time.sleep(0.6)
+    before = mock_stats("primary")["requests"]
+    assert _stream_fails_midway(client)  # the probe: first tokens, then the drop
+    for _ in range(3):
+        assert not _stream_fails_midway(client)  # circuit re-opened: backup serves
+    assert mock_stats("primary")["requests"] == before + 1
+
+
 def test_concurrent_outage_zero_failures(gateway_server, api_key, mock_control):
     """The Phase 2 bar: primary fully down under concurrent streaming load, zero failed requests."""
     mock_control("primary", ttft_ms=20, tokens_per_s=500)

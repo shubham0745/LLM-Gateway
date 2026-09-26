@@ -1,3 +1,20 @@
+# One command: docker compose up -d --build
+#   gateway     http://localhost:8080  (OpenAI-compatible API, /admin, /metrics)
+#   mock        http://localhost:9000  (fake LLM with failure injection)
+#   grafana     http://localhost:3000  (dashboards; anonymous read-only)
+#   prometheus  http://localhost:9090
+# Optional local fallback model: docker compose --profile ollama up -d
+
+x-app: &app
+  image: llm-gateway:latest
+  build: .
+  restart: unless-stopped
+  env_file: [{path: .env, required: false}]
+
+x-app-env: &app-env
+  GATEWAY_DATABASE_URL: postgresql://gateway:gateway@postgres:5432/gateway
+  GATEWAY_REDIS_URL: redis://redis:6379/0
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -10,86 +27,55 @@ services:
       test: ["CMD-SHELL", "pg_isready -U gateway"]
       interval: 2s
       retries: 30
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
     volumes: [redisdata:/data]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s
       retries: 30
-
-  mock:
-    build: .
-    command: ["uvicorn", "mock_provider.app:app", "--host", "0.0.0.0", "--port", "9000", "--no-access-log"]
-    ports: ["9000:9000"]
-
-  worker:
-    build: .
-    command: ["python", "-m", "worker.main"]
-    environment:
-      GATEWAY_DATABASE_URL: postgresql://gateway:gateway@postgres:5432/gateway
-      GATEWAY_REDIS_URL: redis://redis:6379/0
-    depends_on:
-      postgres: {condition: service_healthy}
-      redis: {condition: service_healthy}
     restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus:v2.54.1
-    volumes: ["./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro", "promdata:/prometheus"]
-    ports: ["9090:9090"]
-
-  grafana:
-    image: grafana/grafana:11.2.0
-    environment:
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/gateway-live.json
-    volumes:
-      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports: ["3000:3000"]
-    depends_on: [prometheus, postgres]
-
-  ollama:
-    image: ollama/ollama:latest
-    volumes: [ollama:/root/.ollama]
-    profiles: [ollama]
+  mock:
+    <<: *app
+    command: ["uvicorn", "mock_provider.app:app", "--host", "0.0.0.0", "--port", "9000", "--no-access-log", "--loop", "uvloop"]
+    ports: ["9000:9000"]
 
   gateway:
-    build: .
-    env_file: [{path: .env, required: false}]
+    <<: *app
     environment:
-      GATEWAY_DATABASE_URL: postgresql://gateway:gateway@postgres:5432/gateway
-      GATEWAY_REDIS_URL: redis://redis:6379/0
+      <<: *app-env
+      GATEWAY_ADMIN_TOKEN: ${GATEWAY_ADMIN_TOKEN:-change-me-admin-token}
+      GATEWAY_KEY_PEPPER: ${GATEWAY_KEY_PEPPER:-change-me-pepper}
+      MOCK_URL: http://mock:9000
+      OLLAMA_URL: http://ollama:11434
+      GATEWAY_WORKERS: ${GATEWAY_WORKERS:-}  # empty = one per CPU, at most 4
     ports: ["8080:8080"]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
       mock: {condition: service_started}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/readyz')"]
+      interval: 5s
+      retries: 20
 
-volumes:
-  pgdata:
-  redisdata:
-  promdata:
   worker:
-    build: .
+    <<: *app
     command: ["python", "-m", "worker.main"]
-    environment:
-      GATEWAY_DATABASE_URL: postgresql://gateway:gateway@postgres:5432/gateway
-      GATEWAY_REDIS_URL: redis://redis:6379/0
+    environment: *app-env
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
-    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus:v2.54.1
     volumes: ["./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro", "promdata:/prometheus"]
     ports: ["9090:9090"]
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:11.2.0
@@ -103,5 +89,24 @@ volumes:
       - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports: ["3000:3000"]
     depends_on: [prometheus, postgres]
+    restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama:latest
+    volumes: [ollama:/root/.ollama]
+    profiles: [ollama]
+    restart: unless-stopped
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    profiles: [ollama]
+    environment: {OLLAMA_HOST: "ollama:11434"}
+    entrypoint: ["sh", "-c", "sleep 3 && ollama pull qwen2.5:0.5b"]
+    depends_on: [ollama]
+    restart: "no"
+
+volumes:
+  pgdata:
+  redisdata:
+  promdata:
   ollama:

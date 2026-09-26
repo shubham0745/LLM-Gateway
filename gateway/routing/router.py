@@ -56,10 +56,33 @@ class StreamHandle:
     rest: AsyncIterator[dict] | None = None
     idle_timeout: float = 20.0
     deadline: float = 0.0  # time.monotonic() value
+    # The breaker outcome of a stream is known only when it ends: a provider
+    # that sends a few tokens and then drops every connection is not healthy.
+    # Until then the attempt holds its breaker slot (a half-open probe stays a
+    # probe), and exactly one of success/failure/release settles it.
+    breakers: Any = None
+    breaker_pending: bool = False
+
+    async def settle_breaker(self, outcome: str) -> str | None:
+        if not self.breaker_pending or self.breakers is None:
+            return None
+        self.breaker_pending = False
+        provider = self.target.provider
+        if outcome == "success":
+            state, _ = await asyncio.shield(self.breakers.success(provider))
+            return state
+        if outcome == "failure":
+            state, _ = await asyncio.shield(self.breakers.failure(provider))
+            return state
+        await asyncio.shield(self.breakers.release(provider))
+        return None
 
     async def close(self) -> None:
-        if self.rest is not None:
-            await self.rest.aclose()  # type: ignore[attr-defined]
+        try:
+            if self.rest is not None:
+                await self.rest.aclose()  # type: ignore[attr-defined]
+        finally:
+            await self.settle_breaker("release")
 
 
 def backoff_delay(attempt: int, policy: RetryPolicy, retry_after: float | None = None) -> float | None:
@@ -123,9 +146,9 @@ class Router:
             try:
                 async with asyncio.timeout(min(to.ttft, to.total)):
                     while True:
-                        chunk = await it.__anext__()
-                        prelude.append(chunk)
-                        if chunk_has_output(chunk):
+                        batch = await it.__anext__()
+                        prelude.extend(batch)
+                        if any(chunk_has_output(c) for c in batch):
                             break
             except TimeoutError:
                 await _safe_aclose(it)
@@ -141,12 +164,12 @@ class Router:
         _, handle = await self._run_chain(chain, record, call)
         return handle
 
-    async def iterate(self, handle: StreamHandle, record: RequestRecord) -> AsyncIterator[dict]:
-        """Yield the buffered prelude, then the rest of the stream under idle/total timeouts."""
-        for chunk in handle.prelude:
-            if chunk_has_output(chunk):
-                record.mark_first_token()
-            yield chunk
+    async def iterate(self, handle: StreamHandle, record: RequestRecord) -> AsyncIterator[list[dict]]:
+        """Yield the buffered prelude, then the rest of the stream (in batches) under idle/total timeouts."""
+        if any(chunk_has_output(c) for c in handle.prelude):
+            record.mark_first_token()
+        if handle.prelude:
+            yield handle.prelude
         assert handle.rest is not None
         provider = handle.target.provider
         try:
@@ -155,18 +178,31 @@ class Router:
                 if remaining <= 0:
                     raise ProviderError(provider, "total_timeout", "stream exceeded total timeout", retryable=True)
                 try:
-                    async with asyncio.timeout(min(handle.idle_timeout, remaining)):
-                        chunk = await handle.rest.__anext__()
+                    if remaining > handle.idle_timeout:
+                        # The adapter's httpx read timeout is the idle timeout, so a
+                        # stall already raises; a per-read asyncio timer would only
+                        # add overhead. It is needed only near the total deadline.
+                        batch = await handle.rest.__anext__()
+                    else:
+                        async with asyncio.timeout(remaining):
+                            batch = await handle.rest.__anext__()
                 except StopAsyncIteration:
+                    state = await handle.settle_breaker("success")
+                    if state:
+                        self.hooks.circuit(provider, state)
                     return
                 except TimeoutError:
                     raise ProviderError(provider, "idle_timeout", "stream stalled", retryable=True) from None
-                yield chunk
+                yield batch
         except ProviderError as err:
             # A provider that dies mid-stream is unhealthy too.
-            if err.counts_as_provider_failure and self.breakers:
-                await self._breaker_failure(provider)
+            state = await handle.settle_breaker("failure" if err.counts_as_provider_failure else "release")
+            if state:
+                self.hooks.circuit(provider, state)
             raise
+        finally:
+            # Client went away (or a bug): the stream told us nothing about the provider.
+            await handle.settle_breaker("release")
 
     # -- the chain loop -------------------------------------------------------
 
@@ -229,8 +265,11 @@ class Router:
                 record.attempts.append(Attempt(target.provider, target.model, "ok", round(elapsed * 1000, 2), ttft_ms=ttft))
                 self.hooks.attempt(target.provider, "ok", None, elapsed)
                 if self.breakers:
-                    state, _ = await self.breakers.success(target.provider)
-                    self.hooks.circuit(target.provider, state)
+                    if isinstance(result, StreamHandle):
+                        result.breakers, result.breaker_pending = self.breakers, True
+                    else:
+                        state, _ = await self.breakers.success(target.provider)
+                        self.hooks.circuit(target.provider, state)
                 return target, result
         raise _exhausted_error(last_err, record)
 

@@ -80,7 +80,11 @@ cache:
   exact_enabled: true
   exact_ttl_s: 3600
   semantic:
-    enabled: true
+    # Off by default, because of what it measured: on the FAQ-style replay in
+    # bench/cost_replay.py it added 0.4 points of hit rate on top of the exact
+    # cache while making every miss ~55 ms slower (embedding + vector search).
+    # Turn it on where prompts repeat with small wording changes.
+    enabled: false
     # Measured, not guessed: bench/cache_eval.py on 20k Quora question pairs picks the
     # lowest threshold with <= 2 wrong answers per 1,000 lookups. See docs/benchmarks.md.
     threshold: 0.99

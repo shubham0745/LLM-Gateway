@@ -5,7 +5,9 @@ adapter takes an OpenAI-format request body and returns OpenAI-format
 responses; for streaming it yields OpenAI ``chat.completion.chunk`` dicts.
 
 Contract for ``stream``:
-  * yields chunk dicts whose ``choices[0].delta`` carries role/content/tool_calls
+  * yields non-empty *lists* of chunk dicts, one list per upstream network
+    read (see ``aiter_sse_batches``), whose ``choices[0].delta`` carries
+    role/content/tool_calls
   * the final item carries ``usage`` when the provider reported it (with
     ``choices: []``, the same shape OpenAI uses for ``include_usage``)
   * raises ``ProviderError`` on any failure, including a stream that ends
@@ -17,23 +19,28 @@ Contract for ``stream``:
 from __future__ import annotations
 
 import abc
-import json
 import time
 from collections.abc import AsyncIterator
 from typing import Any
 
 import httpx
+import orjson
 
 from gateway.config import ProviderConfig
 from gateway.errors import ProviderError, classify_status, parse_retry_after
 
 
 class Provider(abc.ABC):
-    def __init__(self, name: str, cfg: ProviderConfig, client: httpx.AsyncClient, api_key: str | None):
+    def __init__(self, name: str, cfg: ProviderConfig, client: Any, api_key: str | None):
         self.name = name
         self.cfg = cfg
-        self.client = client
+        self._client = client  # an httpx.AsyncClient or a registry.ClientPool
         self.api_key = api_key
+
+    @property
+    def client(self) -> httpx.AsyncClient:
+        pick = getattr(self._client, "pick", None)
+        return pick() if pick else self._client
 
     @property
     def enabled(self) -> bool:
@@ -46,7 +53,7 @@ class Provider(abc.ABC):
     @abc.abstractmethod
     def stream(
         self, body: dict[str, Any], model: str, connect_timeout: float, read_timeout: float
-    ) -> AsyncIterator[dict]:
+    ) -> AsyncIterator[list[dict]]:
         """Streaming call. See module docstring for the contract."""
 
     # -- helpers shared by adapters ---------------------------------------
@@ -94,33 +101,84 @@ async def close_response(resp: httpx.Response) -> None:
         pass
 
 
-async def aiter_sse(resp: httpx.Response) -> AsyncIterator[tuple[str | None, str]]:
-    """Parse a text/event-stream body into (event, data) pairs."""
+async def drain(events: AsyncIterator, limit_s: float = 0.5) -> None:
+    """Read whatever follows the terminal event, so the connection returns to the pool.
+
+    Closing a response whose body has not been fully read makes httpx drop the
+    TCP connection, and the next request pays for a new handshake (a large
+    part of the gateway's overhead under load before this existed). The tail
+    after ``[DONE]`` / ``message_stop`` is normally just the end of the
+    chunked body; if it does not arrive quickly we give up and close.
+    """
+    import asyncio
+
+    try:
+        async with asyncio.timeout(limit_s):
+            async for _ in events:
+                pass
+    except (TimeoutError, httpx.HTTPError):
+        pass
+
+
+async def aiter_sse_batches(resp: httpx.Response) -> AsyncIterator[list[tuple[str | None, str]]]:
+    """Parse a text/event-stream body into batches of (event, data) pairs.
+
+    One batch per network read. When the gateway keeps up, a read holds one
+    event; when it falls behind under load, reads hold several, and handling
+    them as one batch (one generator step, one write to the client) makes the
+    per-token cost shrink exactly when it matters.
+
+    Works on bytes (``aiter_bytes`` still undoes any content-encoding) rather
+    than ``aiter_lines``, which stacks a text decoder and a line splitter on
+    top. Splitting on newline before decoding is safe for UTF-8, since no
+    multi-byte character contains a newline byte.
+    """
     event: str | None = None
     data_lines: list[str] = []
-    async for line in resp.aiter_lines():
-        if line == "":
-            if data_lines:
-                yield event, "\n".join(data_lines)
-            event, data_lines = None, []
+    buf = b""
+    async for piece in resp.aiter_bytes():
+        buf += piece
+        if b"\n" not in buf:
             continue
-        if line.startswith(":"):
-            continue
-        field, _, value = line.partition(":")
-        if value.startswith(" "):
-            value = value[1:]
-        if field == "event":
-            event = value
-        elif field == "data":
-            data_lines.append(value)
+        *lines, buf = buf.split(b"\n")
+        batch: list[tuple[str | None, str]] = []
+        for raw in lines:
+            line = raw.decode("utf-8", "replace").rstrip("\r")
+            if line == "":
+                if data_lines:
+                    batch.append((event, "\n".join(data_lines)))
+                event, data_lines = None, []
+                continue
+            if line.startswith(":"):
+                continue
+            field, _, value = line.partition(":")
+            if value.startswith(" "):
+                value = value[1:]
+            if field == "event":
+                event = value
+            elif field == "data":
+                data_lines.append(value)
+        if batch:
+            yield batch
+    if buf.strip():
+        field, _, value = buf.decode("utf-8", "replace").rstrip("\r").partition(":")
+        if field == "data":
+            data_lines.append(value[1:] if value.startswith(" ") else value)
     if data_lines:
-        yield event, "\n".join(data_lines)
+        yield [(event, "\n".join(data_lines))]
+
+
+async def aiter_sse(resp: httpx.Response) -> AsyncIterator[tuple[str | None, str]]:
+    """Parse a text/event-stream body into (event, data) pairs."""
+    async for batch in aiter_sse_batches(resp):
+        for item in batch:
+            yield item
 
 
 def loads_or_error(provider: str, data: str) -> dict:
     try:
-        return json.loads(data)
-    except json.JSONDecodeError as exc:
+        return orjson.loads(data)
+    except orjson.JSONDecodeError as exc:
         raise ProviderError(provider, "bad_stream", f"invalid JSON in stream: {exc}", retryable=True) from exc
 
 

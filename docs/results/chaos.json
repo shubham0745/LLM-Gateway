@@ -1,0 +1,548 @@
+{
+  "scenarios": [
+    {
+      "scenario": "outage",
+      "title": "Primary returns 503 on every request",
+      "expect": "no client errors; breaker opens; traffic moves to backup and returns after cooldown",
+      "injected": {
+        "primary": {
+          "mode": "outage"
+        },
+        "backup": null
+      },
+      "config_patch": null,
+      "concurrency": 20,
+      "timeline_s": {
+        "fault_at": 10,
+        "healed_at": 40,
+        "end": 70
+      },
+      "breaker_open_after_s": 0.41,
+      "back_on_primary_after_s": 0.27,
+      "breaker_closed_after_s": 0.7,
+      "phases": {
+        "healthy": {
+          "requests": 795,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 795
+          },
+          "ttft_ms": {
+            "p50": 89.80744400014373,
+            "p95": 142.14154950022927,
+            "p99": 901.9157350595738,
+            "mean": 108.829083749673
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "fault": {
+          "requests": 2559,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 12,
+            "mock-backup": 2547
+          },
+          "ttft_ms": {
+            "p50": 87.98455299984198,
+            "p95": 132.592039300016,
+            "p99": 173.90833064047914,
+            "mean": 93.07938001407004
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "recovered": {
+          "requests": 2451,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-backup": 43,
+            "mock-primary": 2408
+          },
+          "ttft_ms": {
+            "p50": 90.19610499944974,
+            "p95": 145.71881799975017,
+            "p99": 220.8453054995516,
+            "mean": 96.99451042553389
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        }
+      }
+    },
+    {
+      "scenario": "hang",
+      "title": "Primary accepts connections but never sends a token",
+      "expect": "no client errors; requests wait up to the TTFT timeout until the breaker opens",
+      "injected": {
+        "primary": {
+          "mode": "hang"
+        },
+        "backup": null
+      },
+      "config_patch": {
+        "timeouts": {
+          "ttft": 2.0
+        }
+      },
+      "concurrency": 20,
+      "timeline_s": {
+        "fault_at": 10,
+        "healed_at": 40,
+        "end": 70
+      },
+      "breaker_open_after_s": 2.45,
+      "back_on_primary_after_s": 4.43,
+      "breaker_closed_after_s": 4.64,
+      "phases": {
+        "healthy": {
+          "requests": 833,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 833
+          },
+          "ttft_ms": {
+            "p50": 89.00745699975232,
+            "p95": 135.35999659998194,
+            "p99": 229.62300928040304,
+            "mean": 94.6419632293059
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "fault": {
+          "requests": 2384,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 20,
+            "mock-backup": 2364
+          },
+          "ttft_ms": {
+            "p50": 86.0976704998393,
+            "p95": 154.16187935006744,
+            "p99": 254.22822289002406,
+            "mean": 111.53016819294838
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "recovered": {
+          "requests": 2606,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-backup": 378,
+            "mock-primary": 2228
+          },
+          "ttft_ms": {
+            "p50": 85.8258584999021,
+            "p95": 120.64757124994685,
+            "p99": 164.85633020010934,
+            "mean": 89.14680274864338
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        }
+      }
+    },
+    {
+      "scenario": "rate_limit",
+      "title": "Primary answers 429 with Retry-After: 30s",
+      "expect": "no client errors; Retry-After longer than max_retry_after means fail over, not wait",
+      "injected": {
+        "primary": {
+          "rate_limit_rate": 1.0,
+          "retry_after": 30
+        },
+        "backup": null
+      },
+      "config_patch": null,
+      "concurrency": 20,
+      "timeline_s": {
+        "fault_at": 10,
+        "healed_at": 40,
+        "end": 70
+      },
+      "breaker_open_after_s": 0.36,
+      "back_on_primary_after_s": 0.44,
+      "breaker_closed_after_s": 0.69,
+      "phases": {
+        "healthy": {
+          "requests": 778,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 778
+          },
+          "ttft_ms": {
+            "p50": 98.12137200015059,
+            "p95": 170.69069969998054,
+            "p99": 223.16568798053595,
+            "mean": 106.13571349229315
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "fault": {
+          "requests": 2520,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 1,
+            "mock-backup": 2519
+          },
+          "ttft_ms": {
+            "p50": 89.31813699973645,
+            "p95": 143.32833984917667,
+            "p99": 180.33793507968764,
+            "mean": 94.63856813730067
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "recovered": {
+          "requests": 2670,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-backup": 39,
+            "mock-primary": 2631
+          },
+          "ttft_ms": {
+            "p50": 79.0986365000208,
+            "p95": 124.73032889984096,
+            "p99": 173.45662887963027,
+            "mean": 84.60177157191848
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        }
+      }
+    },
+    {
+      "scenario": "flaky",
+      "title": "30% of primary requests fail with 503",
+      "expect": "no client errors; retries and failover absorb the failures",
+      "injected": {
+        "primary": {
+          "error_rate": 0.3,
+          "error_status": 503
+        },
+        "backup": null
+      },
+      "config_patch": null,
+      "concurrency": 20,
+      "timeline_s": {
+        "fault_at": 10,
+        "healed_at": 40,
+        "end": 70
+      },
+      "breaker_open_after_s": 0.38,
+      "back_on_primary_after_s": 0.01,
+      "breaker_closed_after_s": 0.01,
+      "phases": {
+        "healthy": {
+          "requests": 838,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 838
+          },
+          "ttft_ms": {
+            "p50": 85.687681500076,
+            "p95": 147.2125186501216,
+            "p99": 194.78429029010837,
+            "mean": 92.6781036145364
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "fault": {
+          "requests": 2251,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 2037,
+            "mock-backup": 214
+          },
+          "ttft_ms": {
+            "p50": 89.9298539998199,
+            "p95": 280.1080125000226,
+            "p99": 358.0879574997198,
+            "mean": 125.27266820612317
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "recovered": {
+          "requests": 2644,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 2640,
+            "mock-backup": 4
+          },
+          "ttft_ms": {
+            "p50": 82.99364300000889,
+            "p95": 121.21082625058078,
+            "p99": 163.1435023896666,
+            "mean": 87.14111349886018
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        }
+      }
+    },
+    {
+      "scenario": "midstream",
+      "title": "Primary drops the connection after 5 tokens",
+      "expect": "clients that already got tokens see an error event (cannot be hidden); breaker opens, then clean",
+      "injected": {
+        "primary": {
+          "mode": "midstream_disconnect",
+          "disconnect_after_tokens": 5
+        },
+        "backup": null
+      },
+      "config_patch": null,
+      "concurrency": 20,
+      "timeline_s": {
+        "fault_at": 10,
+        "healed_at": 40,
+        "end": 70
+      },
+      "breaker_open_after_s": 0.4,
+      "back_on_primary_after_s": 0.66,
+      "breaker_closed_after_s": 0.97,
+      "phases": {
+        "healthy": {
+          "requests": 889,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 889
+          },
+          "ttft_ms": {
+            "p50": 80.6444139998348,
+            "p95": 128.7908998001511,
+            "p99": 175.28445008007114,
+            "mean": 85.82861223735291
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "fault": {
+          "requests": 2668,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 21,
+          "error_samples": [
+            "stream error event"
+          ],
+          "served_by": {
+            "mock-primary": 18,
+            "mock-backup": 2629
+          },
+          "ttft_ms": {
+            "p50": 83.09852499951376,
+            "p95": 120.81132989987957,
+            "p99": 159.35273710008912,
+            "mean": 87.15337332036552
+          },
+          "failed_request_ms": {
+            "p50": 120.99467699954403,
+            "p95": 140.09966799949325,
+            "p99": 140.7523575997402,
+            "mean": 117.4589622856469
+          }
+        },
+        "recovered": {
+          "requests": 2712,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-backup": 60,
+            "mock-primary": 2652
+          },
+          "ttft_ms": {
+            "p50": 79.77182900003754,
+            "p95": 114.89404605013077,
+            "p99": 149.61499036975508,
+            "mean": 83.24237950331981
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        }
+      }
+    },
+    {
+      "scenario": "both_down",
+      "title": "Primary and backup both return 503",
+      "expect": "every request fails, quickly and with a clear error, once both breakers are open",
+      "injected": {
+        "primary": {
+          "mode": "outage"
+        },
+        "backup": {
+          "mode": "outage"
+        }
+      },
+      "config_patch": null,
+      "concurrency": 20,
+      "timeline_s": {
+        "fault_at": 10,
+        "healed_at": 40,
+        "end": 70
+      },
+      "breaker_open_after_s": 0.55,
+      "back_on_primary_after_s": 0.33,
+      "breaker_closed_after_s": 0.93,
+      "phases": {
+        "healthy": {
+          "requests": 900,
+          "errors_before_first_token": 0,
+          "errors_after_first_token": 0,
+          "error_samples": [],
+          "served_by": {
+            "mock-primary": 900
+          },
+          "ttft_ms": {
+            "p50": 80.31079700049304,
+            "p95": 119.91723694977735,
+            "p99": 184.17682052046985,
+            "mean": 84.40041377555745
+          },
+          "failed_request_ms": {
+            "p50": NaN,
+            "p95": NaN,
+            "p99": NaN,
+            "mean": NaN
+          }
+        },
+        "fault": {
+          "requests": 8317,
+          "errors_before_first_token": 8309,
+          "errors_after_first_token": 0,
+          "error_samples": [
+            "http 502: b'{\"error\":{\"message\":\"All providers failed; last error from mock-backup: http_503.\",\"type\":\"api_error\",\"param\":null,\"code\":\"upstream_error\"}}'",
+            "http 502: b'{\"error\":{\"message\":\"All providers failed; last error from mock-primary: http_503.\",\"type\":\"api_error\",\"param\":null,\"code\":\"upstream_error\"}}'",
+            "http 503: b'{\"error\":{\"message\":\"Every provider for this model is temporarily unavailable (circuit open).\",\"type\":\"api_error\",\"param\":null,\"code\":\"circuit_open\"}}'"
+          ],
+          "served_by": {
+            "mock-primary": 8
+          },
+          "ttft_ms": {
+            "p50": 103.64584249964537,
+            "p95": 366.1804439496791,
+            "p99": 371.00206718948357,
+            "mean": 191.75049074988237
+          },
+          "failed_request_ms": {
+            "p50": 33.09830900070665,
+            "p95": 127.75051259959572,
+            "p99": 218.02278168026535,
+            "mean": 47.34646989926632
+          }
+        },
+        "recovered": {
+          "requests": 2745,
+          "errors_before_first_token": 132,
+          "errors_after_first_token": 0,
+          "error_samples": [
+            "http 503: b'{\"error\":{\"message\":\"Every provider for this model is temporarily unavailable (circuit open).\",\"type\":\"api_error\",\"param\":null,\"code\":\"circuit_open\"}}'"
+          ],
+          "served_by": {
+            "mock-primary": 2612,
+            "mock-backup": 1
+          },
+          "ttft_ms": {
+            "p50": 82.1032940002624,
+            "p95": 118.29543120020391,
+            "p99": 158.53737115972766,
+            "mean": 86.01353078071983
+          },
+          "failed_request_ms": {
+            "p50": 38.131269499899645,
+            "p95": 295.04183264948534,
+            "p99": 362.7547745695664,
+            "mean": 72.72338403035147
+          }
+        }
+      }
+    }
+  ]
+}
