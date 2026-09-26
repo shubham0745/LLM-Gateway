@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -12,6 +13,7 @@ from redis.asyncio import BlockingConnectionPool, Redis
 from gateway import db
 from gateway.api import admin_routes, openai_routes
 from gateway.api.auth import KeyStore
+from gateway.cache.layer import CacheLayer
 from gateway.config import Settings, load_config_file
 from gateway.errors import GatewayError
 from gateway.limits.budget import BudgetTracker
@@ -25,6 +27,20 @@ from gateway.services import Services
 from gateway.telemetry.emitter import Telemetry
 from gateway.telemetry.logging import setup_logging
 from gateway.telemetry.metrics import Metrics
+
+logger = logging.getLogger(__name__)
+
+
+def _load_embedder(settings: Settings):
+    """The semantic cache needs the embedding model on disk; without it we run exact-cache only."""
+    from pathlib import Path
+
+    if not (Path(settings.embedding_model_dir) / "model.onnx").exists():
+        logger.warning("embedding model not found at %s; semantic cache disabled", settings.embedding_model_dir)
+        return None
+    from gateway.cache.embedder import Embedder
+
+    return Embedder(settings.embedding_model_dir)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -62,6 +78,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             budgets=budgets,
             config_store=store,
         )
+        services.cache = CacheLayer(redis, pool, metrics, _load_embedder(settings))
         services.apply_config(version, config)
         app.state.services = services
         telemetry.start()

@@ -16,7 +16,8 @@ ADMIN = {"authorization": "Bearer test-admin"}
 
 
 def _client(gateway_server, key):
-    return openai.OpenAI(base_url=f"{gateway_server.url}/v1", api_key=key, max_retries=0, timeout=15)
+    return openai.OpenAI(base_url=f"{gateway_server.url}/v1", api_key=key, max_retries=0, timeout=15,
+                         default_headers={"x-gateway-cache": "no-store"})
 
 
 def _ask(c, model="mock", **kw):

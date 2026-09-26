@@ -1,0 +1,180 @@
+{"q1": "What is the capital of France?", "q2": "what's the capital city of france", "label": 1}
+{"q1": "How do I reverse a list in Python?", "q2": "What's the way to reverse a Python list?", "label": 1}
+{"q1": "Explain what a circuit breaker is in distributed systems.", "q2": "What is the circuit breaker pattern in distributed systems?", "label": 1}
+{"q1": "How many days are there in a leap year?", "q2": "Number of days in a leap year?", "label": 1}
+{"q1": "What is the boiling point of water at sea level?", "q2": "At sea level, what temperature does water boil at?", "label": 1}
+{"q1": "Who wrote Pride and Prejudice?", "q2": "Who is the author of Pride and Prejudice?", "label": 1}
+{"q1": "How do I undo my last git commit?", "q2": "How can I undo the most recent commit in git?", "label": 1}
+{"q1": "What is the difference between TCP and UDP?", "q2": "How does TCP differ from UDP?", "label": 1}
+{"q1": "Give me a recipe for pancakes.", "q2": "Can you give me a pancake recipe?", "label": 1}
+{"q1": "What causes the seasons on Earth?", "q2": "Why does Earth have seasons?", "label": 1}
+{"q1": "How do I center a div in CSS?", "q2": "What's the way to center a div using CSS?", "label": 1}
+{"q1": "What is photosynthesis?", "q2": "Can you explain photosynthesis?", "label": 1}
+{"q1": "Translate 'good morning' into Spanish.", "q2": "How do you say 'good morning' in Spanish?", "label": 1}
+{"q1": "What is the speed of light?", "q2": "How fast does light travel?", "label": 1}
+{"q1": "How do I install Docker on Ubuntu?", "q2": "Steps to install Docker on Ubuntu?", "label": 1}
+{"q1": "What is a hash table?", "q2": "Explain what a hash table is.", "label": 1}
+{"q1": "Summarize the plot of Romeo and Juliet.", "q2": "Give me a summary of the plot of Romeo and Juliet.", "label": 1}
+{"q1": "What does HTTP status code 404 mean?", "q2": "What is the meaning of the HTTP 404 status code?", "label": 1}
+{"q1": "How do vaccines work?", "q2": "How does a vaccine work?", "label": 1}
+{"q1": "What is the tallest mountain in the world?", "q2": "Which mountain is the highest in the world?", "label": 1}
+{"q1": "How do I read a CSV file in pandas?", "q2": "How can I load a CSV file with pandas?", "label": 1}
+{"q1": "What are the symptoms of dehydration?", "q2": "What symptoms does dehydration cause?", "label": 1}
+{"q1": "Explain recursion to a beginner.", "q2": "Can you explain recursion for a beginner?", "label": 1}
+{"q1": "What is the Pythagorean theorem?", "q2": "Explain the Pythagorean theorem.", "label": 1}
+{"q1": "How do I make cold brew coffee?", "q2": "What's the method for making cold brew coffee?", "label": 1}
+{"q1": "What is inflation in economics?", "q2": "In economics, what does inflation mean?", "label": 1}
+{"q1": "Why is the sky blue?", "q2": "What makes the sky look blue?", "label": 1}
+{"q1": "How do I create a virtual environment in Python?", "q2": "How to set up a Python virtual environment?", "label": 1}
+{"q1": "What is the largest ocean on Earth?", "q2": "Which ocean is the biggest on the planet?", "label": 1}
+{"q1": "What is machine learning?", "q2": "Can you explain what machine learning is?", "label": 1}
+{"q1": "How many bones are in the adult human body?", "q2": "How many bones does an adult human have?", "label": 1}
+{"q1": "What is the difference between a list and a tuple in Python?", "q2": "How is a Python list different from a tuple?", "label": 1}
+{"q1": "How do I change my Linux password?", "q2": "How can I change the password on Linux?", "label": 1}
+{"q1": "Who painted the Mona Lisa?", "q2": "Who was the painter of the Mona Lisa?", "label": 1}
+{"q1": "What is Kubernetes used for?", "q2": "What do people use Kubernetes for?", "label": 1}
+{"q1": "How do I sort a dictionary by value in Python?", "q2": "Sort a Python dict by its values - how?", "label": 1}
+{"q1": "What is the chemical formula for water?", "q2": "What's water's chemical formula?", "label": 1}
+{"q1": "How long does it take to boil an egg?", "q2": "How many minutes should I boil an egg?", "label": 1}
+{"q1": "What is a REST API?", "q2": "Explain what a REST API is.", "label": 1}
+{"q1": "How do I delete a branch in git?", "q2": "How can I remove a git branch?", "label": 1}
+{"q1": "What is the population of Japan?", "q2": "How many people live in Japan?", "label": 1}
+{"q1": "What is the meaning of life according to Douglas Adams?", "q2": "According to Douglas Adams, what is the meaning of life?", "label": 1}
+{"q1": "Write a haiku about autumn.", "q2": "Compose a haiku about autumn.", "label": 1}
+{"q1": "How does compound interest work?", "q2": "Can you explain how compound interest works?", "label": 1}
+{"q1": "What is the best way to learn a new language?", "q2": "What's the most effective way to learn a new language?", "label": 1}
+{"q1": "How do I convert a string to an integer in JavaScript?", "q2": "In JavaScript, how do I turn a string into an integer?", "label": 1}
+{"q1": "What is DNA?", "q2": "Can you tell me what DNA is?", "label": 1}
+{"q1": "How do noise-cancelling headphones work?", "q2": "How does noise cancelling in headphones work?", "label": 1}
+{"q1": "What year did World War II end?", "q2": "When did World War 2 end?", "label": 1}
+{"q1": "What is an index in a database?", "q2": "Explain database indexes.", "label": 1}
+{"q1": "How do I get rid of hiccups?", "q2": "What's a way to stop hiccups?", "label": 1}
+{"q1": "What is the difference between weather and climate?", "q2": "How is climate different from weather?", "label": 1}
+{"q1": "What are black holes?", "q2": "Can you explain black holes?", "label": 1}
+{"q1": "How do I take a screenshot on a Mac?", "q2": "How can I screenshot on macOS?", "label": 1}
+{"q1": "What does a load balancer do?", "q2": "What is the job of a load balancer?", "label": 1}
+{"q1": "What is the plural of cactus?", "q2": "What's the plural form of cactus?", "label": 1}
+{"q1": "How do I merge two dictionaries in Python?", "q2": "How to combine two Python dictionaries?", "label": 1}
+{"q1": "What is the GDP of a country?", "q2": "What does GDP mean for a country?", "label": 1}
+{"q1": "How many continents are there?", "q2": "What is the number of continents?", "label": 1}
+{"q1": "How do I write a for loop in Go?", "q2": "Syntax for a for loop in Go?", "label": 1}
+{"q1": "What is the main function of the heart?", "q2": "What does the heart mainly do?", "label": 1}
+{"q1": "Who discovered penicillin?", "q2": "Who was the discoverer of penicillin?", "label": 1}
+{"q1": "How do I list files in a directory in bash?", "q2": "How can I list the files of a directory using bash?", "label": 1}
+{"q1": "What is an API key?", "q2": "What's an API key?", "label": 1}
+{"q1": "How do solar panels generate electricity?", "q2": "How do solar panels make electricity?", "label": 1}
+{"q1": "What is the freezing point of water in Fahrenheit?", "q2": "In Fahrenheit, at what temperature does water freeze?", "label": 1}
+{"q1": "What is a mutex?", "q2": "Explain what a mutex is.", "label": 1}
+{"q1": "How do I make my code run faster in Python?", "q2": "How can I speed up my Python code?", "label": 1}
+{"q1": "What language is spoken in Brazil?", "q2": "What is the language of Brazil?", "label": 1}
+{"q1": "How do I cook rice on the stove?", "q2": "How to cook rice on a stovetop?", "label": 1}
+{"q1": "What is a prime number?", "q2": "Define a prime number.", "label": 1}
+{"q1": "What is the purpose of a VPN?", "q2": "Why would someone use a VPN?", "label": 1}
+{"q1": "How does a refrigerator keep food cold?", "q2": "How does a fridge keep things cold?", "label": 1}
+{"q1": "What is Big O notation?", "q2": "Can you explain Big O notation?", "label": 1}
+{"q1": "How do I tie a tie?", "q2": "How to tie a necktie?", "label": 1}
+{"q1": "What is the smallest planet in our solar system?", "q2": "Which planet in the solar system is the smallest?", "label": 1}
+{"q1": "How do I check my Python version?", "q2": "How can I find out which Python version I have?", "label": 1}
+{"q1": "What is an SSL certificate?", "q2": "Explain what an SSL certificate is.", "label": 1}
+{"q1": "What is the difference between affect and effect?", "q2": "Affect vs effect - what's the difference?", "label": 1}
+{"q1": "How do I remove duplicates from a list in Python?", "q2": "How to deduplicate a Python list?", "label": 1}
+{"q1": "Why do cats purr?", "q2": "What is the reason cats purr?", "label": 1}
+{"q1": "How does a blockchain work?", "q2": "Can you explain how blockchain works?", "label": 1}
+{"q1": "How do I clear the cache in Chrome?", "q2": "How can I clear Chrome's cache?", "label": 1}
+{"q1": "What is the currency of the United Kingdom?", "q2": "What currency does the UK use?", "label": 1}
+{"q1": "What is a closure in JavaScript?", "q2": "Explain JavaScript closures.", "label": 1}
+{"q1": "How much water should I drink per day?", "q2": "How much water should a person drink daily?", "label": 1}
+{"q1": "What is the function of mitochondria?", "q2": "What do mitochondria do?", "label": 1}
+{"q1": "How do I make a pull request on GitHub?", "q2": "How to open a pull request on GitHub?", "label": 1}
+{"q1": "What is the square root of 144?", "q2": "sqrt of 144?", "label": 1}
+{"q1": "What causes earthquakes?", "q2": "Why do earthquakes happen?", "label": 1}
+{"q1": "What is the capital of France?", "q2": "What is the capital of Germany?", "label": 0}
+{"q1": "What is the capital of Austria?", "q2": "What is the capital of Australia?", "label": 0}
+{"q1": "How do I reverse a list in Python?", "q2": "How do I reverse a string in Python?", "label": 0}
+{"q1": "How do I reverse a list in Python?", "q2": "How do I reverse a list in JavaScript?", "label": 0}
+{"q1": "Convert 5 kilometers to miles.", "q2": "Convert 5 miles to kilometers.", "label": 0}
+{"q1": "Convert 100 Fahrenheit to Celsius.", "q2": "Convert 100 Celsius to Fahrenheit.", "label": 0}
+{"q1": "What is 15% of 200?", "q2": "What is 20% of 150?", "label": 0}
+{"q1": "Translate 'good morning' into Spanish.", "q2": "Translate 'good morning' into French.", "label": 0}
+{"q1": "Translate 'thank you' into Japanese.", "q2": "Translate 'thank you' into Korean.", "label": 0}
+{"q1": "Who wrote Pride and Prejudice?", "q2": "Who wrote War and Peace?", "label": 0}
+{"q1": "How do I undo my last git commit?", "q2": "How do I undo my last git push?", "label": 0}
+{"q1": "How do I delete a branch in git?", "q2": "How do I delete a remote branch in git?", "label": 0}
+{"q1": "What is the difference between TCP and UDP?", "q2": "What is the difference between HTTP and HTTPS?", "label": 0}
+{"q1": "What year did World War II end?", "q2": "What year did World War I end?", "label": 0}
+{"q1": "What year did World War II start?", "q2": "What year did World War II end?", "label": 0}
+{"q1": "Is it safe to eat raw eggs?", "q2": "Is it safe to eat raw chicken?", "label": 0}
+{"q1": "Is coffee good for you?", "q2": "Is coffee bad for you?", "label": 0}
+{"q1": "What are the benefits of running?", "q2": "What are the risks of running?", "label": 0}
+{"q1": "How many bones are in the adult human body?", "q2": "How many bones are in a baby's body?", "label": 0}
+{"q1": "What is the tallest mountain in the world?", "q2": "What is the tallest mountain in Africa?", "label": 0}
+{"q1": "What is the largest ocean on Earth?", "q2": "What is the smallest ocean on Earth?", "label": 0}
+{"q1": "What is the smallest planet in our solar system?", "q2": "What is the largest planet in our solar system?", "label": 0}
+{"q1": "How do I install Docker on Ubuntu?", "q2": "How do I uninstall Docker on Ubuntu?", "label": 0}
+{"q1": "How do I install Docker on Ubuntu?", "q2": "How do I install Docker on Windows?", "label": 0}
+{"q1": "How do I read a CSV file in pandas?", "q2": "How do I write a CSV file in pandas?", "label": 0}
+{"q1": "How do I read a JSON file in Python?", "q2": "How do I read a YAML file in Python?", "label": 0}
+{"q1": "What is the boiling point of water at sea level?", "q2": "What is the boiling point of water on Mount Everest?", "label": 0}
+{"q1": "What is the freezing point of water in Fahrenheit?", "q2": "What is the freezing point of water in Celsius?", "label": 0}
+{"q1": "How do I convert a string to an integer in JavaScript?", "q2": "How do I convert an integer to a string in JavaScript?", "label": 0}
+{"q1": "How do I sort a dictionary by value in Python?", "q2": "How do I sort a dictionary by key in Python?", "label": 0}
+{"q1": "How do I sort a list in ascending order in Python?", "q2": "How do I sort a list in descending order in Python?", "label": 0}
+{"q1": "What is the population of Japan?", "q2": "What is the population of China?", "label": 0}
+{"q1": "What is the population of Tokyo?", "q2": "What is the area of Tokyo?", "label": 0}
+{"q1": "Write a haiku about autumn.", "q2": "Write a haiku about spring.", "label": 0}
+{"q1": "Write a poem about the sea.", "q2": "Write a story about the sea.", "label": 0}
+{"q1": "Summarize the plot of Romeo and Juliet.", "q2": "Summarize the plot of Hamlet.", "label": 0}
+{"q1": "What does HTTP status code 404 mean?", "q2": "What does HTTP status code 403 mean?", "label": 0}
+{"q1": "What does HTTP status code 500 mean?", "q2": "What does HTTP status code 503 mean?", "label": 0}
+{"q1": "How do I take a screenshot on a Mac?", "q2": "How do I take a screenshot on Windows?", "label": 0}
+{"q1": "How do I change my Linux password?", "q2": "How do I reset a forgotten Linux password?", "label": 0}
+{"q1": "Who painted the Mona Lisa?", "q2": "Who painted The Starry Night?", "label": 0}
+{"q1": "Who discovered penicillin?", "q2": "Who invented the telephone?", "label": 0}
+{"q1": "What is the chemical formula for water?", "q2": "What is the chemical formula for salt?", "label": 0}
+{"q1": "How long does it take to boil an egg?", "q2": "How long does it take to boil potatoes?", "label": 0}
+{"q1": "How long should I boil a soft-boiled egg?", "q2": "How long should I boil a hard-boiled egg?", "label": 0}
+{"q1": "What is the currency of the United Kingdom?", "q2": "What is the currency of Switzerland?", "label": 0}
+{"q1": "What language is spoken in Brazil?", "q2": "What language is spoken in Argentina?", "label": 0}
+{"q1": "How many continents are there?", "q2": "How many countries are there?", "label": 0}
+{"q1": "How do I write a for loop in Go?", "q2": "How do I write a for loop in Rust?", "label": 0}
+{"q1": "How do I write a while loop in Python?", "q2": "How do I write a for loop in Python?", "label": 0}
+{"q1": "What is the square root of 144?", "q2": "What is the square root of 169?", "label": 0}
+{"q1": "What is 12 times 12?", "q2": "What is 12 plus 12?", "label": 0}
+{"q1": "What is the derivative of x squared?", "q2": "What is the integral of x squared?", "label": 0}
+{"q1": "What is the time complexity of quicksort?", "q2": "What is the time complexity of mergesort?", "label": 0}
+{"q1": "What is the best case time complexity of quicksort?", "q2": "What is the worst case time complexity of quicksort?", "label": 0}
+{"q1": "How do I merge two dictionaries in Python?", "q2": "How do I merge two lists in Python?", "label": 0}
+{"q1": "How do I remove duplicates from a list in Python?", "q2": "How do I find duplicates in a list in Python?", "label": 0}
+{"q1": "How do I clear the cache in Chrome?", "q2": "How do I clear the cache in Firefox?", "label": 0}
+{"q1": "How do I cook rice on the stove?", "q2": "How do I cook quinoa on the stove?", "label": 0}
+{"q1": "Give me a recipe for pancakes.", "q2": "Give me a recipe for waffles.", "label": 0}
+{"q1": "Give me a vegan recipe for pancakes.", "q2": "Give me a recipe for pancakes with eggs.", "label": 0}
+{"q1": "What are the symptoms of dehydration?", "q2": "What are the symptoms of diabetes?", "label": 0}
+{"q1": "What are the symptoms of the flu?", "q2": "What are the symptoms of a cold?", "label": 0}
+{"q1": "How much water should I drink per day?", "q2": "How much protein should I eat per day?", "label": 0}
+{"q1": "How do I make my code run faster in Python?", "q2": "How do I make my code run faster in Java?", "label": 0}
+{"q1": "What is the purpose of a VPN?", "q2": "What is the purpose of a firewall?", "label": 0}
+{"q1": "Why do cats purr?", "q2": "Why do dogs wag their tails?", "label": 0}
+{"q1": "How does a refrigerator keep food cold?", "q2": "How does an oven keep food hot?", "label": 0}
+{"q1": "What is the function of mitochondria?", "q2": "What is the function of ribosomes?", "label": 0}
+{"q1": "How do I make a pull request on GitHub?", "q2": "How do I close a pull request on GitHub?", "label": 0}
+{"q1": "How do I create a virtual environment in Python?", "q2": "How do I delete a virtual environment in Python?", "label": 0}
+{"q1": "How do I check my Python version?", "q2": "How do I check my Node version?", "label": 0}
+{"q1": "What is the plural of cactus?", "q2": "What is the plural of octopus?", "label": 0}
+{"q1": "What is the difference between affect and effect?", "q2": "What is the difference between then and than?", "label": 0}
+{"q1": "How do I list files in a directory in bash?", "q2": "How do I count files in a directory in bash?", "label": 0}
+{"q1": "What is the GDP of the United States?", "q2": "What is the GDP of India?", "label": 0}
+{"q1": "Explain recursion to a beginner.", "q2": "Explain recursion to an expert.", "label": 0}
+{"q1": "Explain quantum computing in one sentence.", "q2": "Explain quantum computing in detail.", "label": 0}
+{"q1": "Write a formal email declining a job offer.", "q2": "Write a formal email accepting a job offer.", "label": 0}
+{"q1": "Write a cover letter for a software engineer position.", "q2": "Write a cover letter for a data scientist position.", "label": 0}
+{"q1": "List three benefits of exercise.", "q2": "List ten benefits of exercise.", "label": 0}
+{"q1": "Name a fruit that is red.", "q2": "Name a fruit that is yellow.", "label": 0}
+{"q1": "What time zone is New York in?", "q2": "What time zone is Los Angeles in?", "label": 0}
+{"q1": "How far is the Moon from Earth?", "q2": "How far is the Sun from Earth?", "label": 0}
+{"q1": "How do I tie a tie?", "q2": "How do I tie a bow tie?", "label": 0}
+{"q1": "Can dogs eat grapes?", "q2": "Can dogs eat carrots?", "label": 0}
+{"q1": "Is 97 a prime number?", "q2": "Is 91 a prime number?", "label": 0}
+{"q1": "What was the score of the 2018 World Cup final?", "q2": "What was the score of the 2022 World Cup final?", "label": 0}
+{"q1": "Who won the 2016 US presidential election?", "q2": "Who won the 2020 US presidential election?", "label": 0}
+{"q1": "What does a load balancer do?", "q2": "What does a reverse proxy do?", "label": 0}

@@ -4,3 +4,4 @@ pytest-asyncio>=0.23,<2
 openai>=1.40
 locust>=2.29,<3
 ruff>=0.6
+matplotlib>=3.8

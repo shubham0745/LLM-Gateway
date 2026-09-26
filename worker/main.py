@@ -66,7 +66,7 @@ class Writer:
 
     async def _write_semantic(self, events: list[dict]) -> None:
         # Imported lazily: the semantic cache module pulls in numpy.
-        from gateway.cache.semantic import insert_rows
+        from gateway.cache.layer import insert_rows
 
         await insert_rows(self.pool, events)
 
@@ -125,8 +125,13 @@ async def main() -> None:
     if reclaimed:
         logger.info("reclaimed pending events", extra={"fields": {"count": reclaimed}})
     written = 0
+    last_cleanup = 0.0
     while not stop.is_set():
         try:
+            if loop.time() - last_cleanup > 300:
+                deleted = await pool.execute("DELETE FROM semantic_cache WHERE expires_at < now()")
+                logger.info("expired semantic cache rows removed", extra={"fields": {"result": deleted}})
+                last_cleanup = loop.time()
             written += await writer.run_once()
         except (asyncpg.PostgresError, OSError, ConnectionError):
             logger.exception("write failed; events stay pending and will be retried")

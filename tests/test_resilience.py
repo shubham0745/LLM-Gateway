@@ -171,7 +171,8 @@ def test_concurrent_outage_zero_failures(gateway_server, api_key, mock_control):
     """The Phase 2 bar: primary fully down under concurrent streaming load, zero failed requests."""
     mock_control("primary", ttft_ms=20, tokens_per_s=500)
     mock_control("backup", ttft_ms=20, tokens_per_s=500)
-    c = openai.OpenAI(base_url=f"{gateway_server.url}/v1", api_key=api_key, max_retries=0, timeout=20)
+    c = openai.OpenAI(base_url=f"{gateway_server.url}/v1", api_key=api_key, max_retries=0, timeout=20,
+                      default_headers={"x-gateway-cache": "no-store"})
 
     def one(i: int) -> bool:
         if i == 40:

@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 
 from gateway.accounting.pricing import cost_usd
 from gateway.accounting.tokens import estimate_prompt_tokens, estimate_text_tokens
+from gateway.cache.layer import CachedAnswer, Lookup, cache_directive
 from gateway.errors import GatewayError, ProviderError
 from gateway.limits.guard import Reservation
 from gateway.routing.router import StreamHandle
@@ -123,11 +124,20 @@ async def chat_completions(request: Request) -> Response:
         chain = svc.router.resolve(body["model"])
         reservation = await svc.limits.admit(principal, body, chain, svc.config)
 
+        lookup: Lookup | None = None
+        if svc.cache is not None:
+            directive = cache_directive(request.headers)
+            cached, lookup = await svc.cache.lookup(principal.tenant_id, record.alias, body, svc.config.cache, directive)
+            record.cache_status = "bypass" if directive else "miss"
+            if cached is not None:
+                handed_off = record.stream
+                return _serve_cached(svc, body, record, reservation, cached)
+
         if record.stream:
             handle = await svc.router.open_stream(body, chain, record)
             record.provider, record.model = handle.target.provider, handle.target.model
             started: dict[str, bool] = {}
-            gen = _relay_stream(svc, body, handle, record, reservation, started)
+            gen = _relay_stream(svc, body, handle, record, reservation, started, lookup)
 
             def never_started() -> None:
                 record.status, record.http_status = "client_disconnected", 499
@@ -147,6 +157,7 @@ async def chat_completions(request: Request) -> Response:
         record.provider, record.model = target.provider, target.model
         resp["id"] = "chatcmpl-" + record.request_id[4:]
         _apply_usage(record, resp.get("usage"), body, _content_of_response(resp))
+        _maybe_store(svc, record, lookup, _content_of_response(resp), _finish_reason(resp), resp)
         resp["usage"] = {
             "prompt_tokens": record.prompt_tokens,
             "completion_tokens": record.completion_tokens,
@@ -165,6 +176,86 @@ async def chat_completions(request: Request) -> Response:
             svc.telemetry.metrics.inflight.dec()
 
 
+def _finish_reason(resp: dict) -> str | None:
+    try:
+        return resp["choices"][0].get("finish_reason")
+    except (KeyError, IndexError, TypeError, AttributeError):
+        return None
+
+
+def _maybe_store(svc: Services, record: RequestRecord, lookup: Lookup | None, content: str, finish: str | None, resp: dict | None) -> None:
+    """Cache complete, plain-text, single-choice answers only."""
+    if svc.cache is None or lookup is None or not lookup.store or not content or finish not in ("stop", "length"):
+        return
+    if resp is not None:
+        choices = resp.get("choices") or []
+        if len(choices) != 1 or (choices[0].get("message") or {}).get("tool_calls"):
+            return
+    answer = CachedAnswer(content, finish, record.model or "", record.provider or "", record.prompt_tokens,
+                          record.completion_tokens, kind="").to_json()
+    svc.spawn(svc.cache.store(record.tenant_id or "", lookup, answer, svc.config.cache, svc.telemetry.enqueue_event))
+
+
+def _serve_cached(svc: Services, body: dict, record: RequestRecord, reservation: Reservation, hit: CachedAnswer) -> Response:
+    """Answer from the cache. Streams are replayed chunk by chunk so clients can't tell the difference."""
+    record.cache_status = hit.kind
+    record.provider, record.model = "cache", hit.model
+    # The caller pays nothing; we record what the answer would have cost.
+    record.saved_usd = round(cost_usd(svc.config.pricing, hit.model, hit.prompt_tokens, hit.completion_tokens), 8)
+    headers = {**reservation.headers, **_gateway_headers(record), "x-gateway-cached-from": hit.provider}
+    if hit.similarity is not None:
+        headers["x-gateway-cache-similarity"] = str(hit.similarity)
+    completion_id = "chatcmpl-" + record.request_id[4:]
+    usage = {"prompt_tokens": hit.prompt_tokens, "completion_tokens": hit.completion_tokens,
+             "total_tokens": hit.prompt_tokens + hit.completion_tokens}
+    if not record.stream:
+        _finalize(svc, record, reservation)
+        return JSONResponse({
+            "id": completion_id, "object": "chat.completion", "created": int(time.time()), "model": hit.model,
+            "choices": [{"index": 0, "message": {"role": "assistant", "content": hit.content},
+                         "finish_reason": hit.finish_reason, "logprobs": None}],
+            "usage": usage,
+        }, headers=headers)
+
+    include_usage = bool((body.get("stream_options") or {}).get("include_usage"))
+    record.mark_first_token()
+
+    started: dict[str, bool] = {}
+
+    async def replay() -> AsyncIterator[bytes]:
+        started["yes"] = True
+        try:
+            created = int(time.time())
+            pieces = _split_for_replay(hit.content)
+            for i, piece in enumerate(pieces):
+                delta = {"role": "assistant", "content": piece} if i == 0 else {"content": piece}
+                yield _sse({"id": completion_id, "object": "chat.completion.chunk", "created": created, "model": hit.model,
+                            "choices": [{"index": 0, "delta": delta, "finish_reason": None, "logprobs": None}]})
+            yield _sse({"id": completion_id, "object": "chat.completion.chunk", "created": created, "model": hit.model,
+                        "choices": [{"index": 0, "delta": {}, "finish_reason": hit.finish_reason, "logprobs": None}]})
+            if include_usage:
+                yield _sse({"id": completion_id, "object": "chat.completion.chunk", "created": created, "model": hit.model,
+                            "choices": [], "usage": usage})
+            yield b"data: [DONE]\n\n"
+        finally:
+            _finalize(svc, record, reservation)
+
+    return ClosingStreamingResponse(replay(), started=started, on_unstarted=lambda: _finalize(svc, record, reservation),
+                                    media_type="text/event-stream",
+                                    headers={**headers, "cache-control": "no-cache"})
+
+
+def _split_for_replay(text: str, words_per_chunk: int = 3) -> list[str]:
+    import re
+
+    tokens = re.findall(r"\s*\S+", text) or [text]
+    return ["".join(tokens[i:i + words_per_chunk]) for i in range(0, len(tokens), words_per_chunk)]
+
+
+def _sse(obj: dict) -> bytes:
+    return b"data: " + json.dumps(obj, separators=(",", ":")).encode() + b"\n\n"
+
+
 def _finalize(svc: Services, record: RequestRecord, reservation: Reservation | None) -> None:
     """Price the request, emit its record, and settle its reservation (in the background)."""
     record.cost_usd = round(cost_usd(svc.config.pricing, record.model, record.prompt_tokens, record.completion_tokens), 8)
@@ -178,7 +269,7 @@ def _finalize(svc: Services, record: RequestRecord, reservation: Reservation | N
 
 async def _relay_stream(
     svc: Services, body: dict, handle: StreamHandle, record: RequestRecord, reservation: Reservation,
-    started: dict[str, bool],
+    started: dict[str, bool], lookup: Lookup | None = None,
 ) -> AsyncIterator[bytes]:
     started["yes"] = True
     completion_id = "chatcmpl-" + record.request_id[4:]
@@ -186,6 +277,8 @@ async def _relay_stream(
     text_parts: list[str] = []
     usage: dict | None = None
     completed = False
+    finish_reason: str | None = None
+    tool_calls = False
     try:
         async for chunk in svc.router.iterate(handle, record):
             if chunk.get("usage"):
@@ -196,11 +289,16 @@ async def _relay_stream(
             chunk["model"] = record.model
             chunk.pop("usage", None)
             for choice in chunk["choices"]:
-                piece = (choice.get("delta") or {}).get("content")
-                if piece:
-                    text_parts.append(piece)
+                delta = choice.get("delta") or {}
+                if delta.get("content"):
+                    text_parts.append(delta["content"])
+                if delta.get("tool_calls"):
+                    tool_calls = True
+                finish_reason = choice.get("finish_reason") or finish_reason
             yield b"data: " + json.dumps(chunk, separators=(",", ":")).encode() + b"\n\n"
         _apply_usage(record, usage, body, "".join(text_parts))
+        if not tool_calls:
+            _maybe_store(svc, record, lookup, "".join(text_parts), finish_reason, None)
         if include_usage:
             u = {
                 "prompt_tokens": record.prompt_tokens,

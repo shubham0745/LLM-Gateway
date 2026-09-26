@@ -12,6 +12,13 @@ MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 
 async def _init_conn(conn: asyncpg.Connection) -> None:
     await conn.set_type_codec("jsonb", encoder=json.dumps, decoder=json.loads, schema="pg_catalog")
+    try:
+        # pgvector >= 0.8: keep scanning the HNSW graph until the tenant/scope
+        # filter has found a match, instead of returning nothing when the
+        # nearest neighbours overall belong to other tenants.
+        await conn.execute("SET hnsw.iterative_scan = relaxed_order")
+    except asyncpg.PostgresError:
+        pass
 
 
 async def create_pool(dsn: str, min_size: int = 2, max_size: int = 20) -> asyncpg.Pool:

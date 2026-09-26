@@ -95,6 +95,7 @@ def gateway_server(mock_server):
         auth_cache_ttl_s=0.5,
         config_poll_interval_s=0.5,
         log_level="WARNING",
+        embedding_model_dir=str(ROOT / "models" / "all-MiniLM-L6-v2"),
     )
     srv = ServerThread(create_app(settings), _free_port())
     srv.start()
@@ -170,4 +171,7 @@ def mock_stats(mock_server):
 def client(gateway_server, api_key):
     from openai import OpenAI
 
-    return OpenAI(base_url=f"{gateway_server.url}/v1", api_key=api_key, max_retries=0, timeout=15)
+    # Caching is opted out by default so repeated prompts reach the provider;
+    # the cache tests build their own clients.
+    return OpenAI(base_url=f"{gateway_server.url}/v1", api_key=api_key, max_retries=0, timeout=15,
+                  default_headers={"x-gateway-cache": "no-store"})

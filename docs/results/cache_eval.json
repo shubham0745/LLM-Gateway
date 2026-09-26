@@ -1,0 +1,1806 @@
+{
+  "meta": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2 (ONNX)",
+    "max_wrong_per_1000_requests": 2.0,
+    "handwritten_pairs": 180,
+    "handwritten_closest_near_misses": [
+      {
+        "similarity": 0.9961,
+        "q1": "How do I convert a string to an integer in JavaScript?",
+        "q2": "How do I convert an integer to a string in JavaScript?",
+        "guard": "direction swapped"
+      },
+      {
+        "similarity": 0.993,
+        "q1": "Convert 5 kilometers to miles.",
+        "q2": "Convert 5 miles to kilometers.",
+        "guard": "direction swapped"
+      },
+      {
+        "similarity": 0.9913,
+        "q1": "Convert 100 Fahrenheit to Celsius.",
+        "q2": "Convert 100 Celsius to Fahrenheit.",
+        "guard": "direction swapped"
+      },
+      {
+        "similarity": 0.9625,
+        "q1": "How long should I boil a soft-boiled egg?",
+        "q2": "How long should I boil a hard-boiled egg?",
+        "guard": "opposite terms (soft)"
+      },
+      {
+        "similarity": 0.9522,
+        "q1": "How do I sort a list in ascending order in Python?",
+        "q2": "How do I sort a list in descending order in Python?",
+        "guard": "opposite terms (ascending)"
+      },
+      {
+        "similarity": 0.9393,
+        "q1": "What is the best case time complexity of quicksort?",
+        "q2": "What is the worst case time complexity of quicksort?",
+        "guard": "opposite terms (best)"
+      },
+      {
+        "similarity": 0.9357,
+        "q1": "Is coffee good for you?",
+        "q2": "Is coffee bad for you?",
+        "guard": "opposite terms (good)"
+      },
+      {
+        "similarity": 0.9345,
+        "q1": "How do I sort a dictionary by value in Python?",
+        "q2": "How do I sort a dictionary by key in Python?",
+        "guard": "passes"
+      }
+    ],
+    "heldout_pairs": 70,
+    "heldout_closest_near_misses": [
+      {
+        "similarity": 0.9989,
+        "q1": "How do I copy files from my laptop to a server with scp?",
+        "q2": "How do I copy files from a server to my laptop with scp?",
+        "guard": "direction swapped"
+      },
+      {
+        "similarity": 0.9984,
+        "q1": "Translate 'where is the station' from German to English.",
+        "q2": "Translate 'where is the station' from English to German.",
+        "guard": "direction swapped"
+      },
+      {
+        "similarity": 0.9958,
+        "q1": "What is the time in London when it's noon in New York?",
+        "q2": "What is the time in New York when it's noon in London?",
+        "guard": "passes"
+      },
+      {
+        "similarity": 0.9778,
+        "q1": "How do I merge a branch into main?",
+        "q2": "How do I merge main into my branch?",
+        "guard": "direction swapped"
+      },
+      {
+        "similarity": 0.9772,
+        "q1": "How do I convert a PDF to Word?",
+        "q2": "How do I convert a Word document to PDF?",
+        "guard": "passes"
+      },
+      {
+        "similarity": 0.9673,
+        "q1": "What is the maximum length of a tweet?",
+        "q2": "What is the minimum length of a tweet?",
+        "guard": "opposite terms (maximum)"
+      },
+      {
+        "similarity": 0.9566,
+        "q1": "How many teaspoons are in a tablespoon?",
+        "q2": "How many tablespoons are in a teaspoon?",
+        "guard": "passes"
+      },
+      {
+        "similarity": 0.9536,
+        "q1": "How do I enable dark mode on iPhone?",
+        "q2": "How do I disable dark mode on iPhone?",
+        "guard": "opposite terms (enable)"
+      }
+    ],
+    "qqp_pairs": 20000,
+    "qqp_duplicate_share": 0.36735,
+    "embed_ms_per_text_batched": 5.031,
+    "embed_ms_single_prompt_1_thread": 8.064,
+    "chosen_threshold": 0.99,
+    "chosen_on": "qqp_retrieval_guard"
+  },
+  "curves": {
+    "handwritten_pairwise": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.8555555555555555,
+        "wrong_answer_rate": 0.4155844155844156,
+        "wrong_per_1000_requests": 355.55555555555554,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.8333333333333334,
+        "wrong_answer_rate": 0.4,
+        "wrong_per_1000_requests": 333.3333333333333,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.8222222222222222,
+        "wrong_answer_rate": 0.3918918918918919,
+        "wrong_per_1000_requests": 322.22222222222223,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.8166666666666667,
+        "wrong_answer_rate": 0.3877551020408163,
+        "wrong_per_1000_requests": 316.6666666666667,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.7944444444444444,
+        "wrong_answer_rate": 0.3706293706293706,
+        "wrong_per_1000_requests": 294.44444444444446,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.7833333333333333,
+        "wrong_answer_rate": 0.36879432624113473,
+        "wrong_per_1000_requests": 288.8888888888889,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.7722222222222223,
+        "wrong_answer_rate": 0.3597122302158273,
+        "wrong_per_1000_requests": 277.77777777777777,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.7444444444444445,
+        "wrong_answer_rate": 0.3358208955223881,
+        "wrong_per_1000_requests": 250.0,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.7333333333333333,
+        "wrong_answer_rate": 0.32575757575757575,
+        "wrong_per_1000_requests": 238.88888888888889,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.7277777777777777,
+        "wrong_answer_rate": 0.32061068702290074,
+        "wrong_per_1000_requests": 233.33333333333334,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.7166666666666667,
+        "wrong_answer_rate": 0.31007751937984496,
+        "wrong_per_1000_requests": 222.22222222222223,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.6888888888888889,
+        "wrong_answer_rate": 0.29838709677419356,
+        "wrong_per_1000_requests": 205.55555555555554,
+        "duplicate_recall": 0.9666666666666667
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.6722222222222223,
+        "wrong_answer_rate": 0.2809917355371901,
+        "wrong_per_1000_requests": 188.88888888888889,
+        "duplicate_recall": 0.9666666666666667
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.65,
+        "wrong_answer_rate": 0.2564102564102564,
+        "wrong_per_1000_requests": 166.66666666666666,
+        "duplicate_recall": 0.9666666666666667
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.6388888888888888,
+        "wrong_answer_rate": 0.25217391304347825,
+        "wrong_per_1000_requests": 161.11111111111111,
+        "duplicate_recall": 0.9555555555555556
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.6,
+        "wrong_answer_rate": 0.2037037037037037,
+        "wrong_per_1000_requests": 122.22222222222223,
+        "duplicate_recall": 0.9555555555555556
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.6,
+        "wrong_answer_rate": 0.2037037037037037,
+        "wrong_per_1000_requests": 122.22222222222223,
+        "duplicate_recall": 0.9555555555555556
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.5611111111111111,
+        "wrong_answer_rate": 0.1782178217821782,
+        "wrong_per_1000_requests": 100.0,
+        "duplicate_recall": 0.9222222222222223
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.55,
+        "wrong_answer_rate": 0.1717171717171717,
+        "wrong_per_1000_requests": 94.44444444444444,
+        "duplicate_recall": 0.9111111111111111
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.5277777777777778,
+        "wrong_answer_rate": 0.15789473684210525,
+        "wrong_per_1000_requests": 83.33333333333333,
+        "duplicate_recall": 0.8888888888888888
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.4777777777777778,
+        "wrong_answer_rate": 0.1511627906976744,
+        "wrong_per_1000_requests": 72.22222222222223,
+        "duplicate_recall": 0.8111111111111111
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.45,
+        "wrong_answer_rate": 0.14814814814814814,
+        "wrong_per_1000_requests": 66.66666666666667,
+        "duplicate_recall": 0.7666666666666667
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.39444444444444443,
+        "wrong_answer_rate": 0.16901408450704225,
+        "wrong_per_1000_requests": 66.66666666666667,
+        "duplicate_recall": 0.6555555555555556
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.34444444444444444,
+        "wrong_answer_rate": 0.12903225806451613,
+        "wrong_per_1000_requests": 44.44444444444444,
+        "duplicate_recall": 0.6
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.26666666666666666,
+        "wrong_answer_rate": 0.10416666666666667,
+        "wrong_per_1000_requests": 27.77777777777778,
+        "duplicate_recall": 0.4777777777777778
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.21666666666666667,
+        "wrong_answer_rate": 0.1282051282051282,
+        "wrong_per_1000_requests": 27.77777777777778,
+        "duplicate_recall": 0.37777777777777777
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.17222222222222222,
+        "wrong_answer_rate": 0.12903225806451613,
+        "wrong_per_1000_requests": 22.22222222222222,
+        "duplicate_recall": 0.3
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.08333333333333333,
+        "wrong_answer_rate": 0.2,
+        "wrong_per_1000_requests": 16.666666666666668,
+        "duplicate_recall": 0.13333333333333333
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.027777777777777776,
+        "wrong_answer_rate": 0.6,
+        "wrong_per_1000_requests": 16.666666666666668,
+        "duplicate_recall": 0.022222222222222223
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.022222222222222223,
+        "wrong_answer_rate": 0.75,
+        "wrong_per_1000_requests": 16.666666666666668,
+        "duplicate_recall": 0.011111111111111112
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.0,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.0
+      }
+    ],
+    "handwritten_pairwise_guard": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.7333333333333333,
+        "wrong_answer_rate": 0.32575757575757575,
+        "wrong_per_1000_requests": 238.88888888888889,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.7111111111111111,
+        "wrong_answer_rate": 0.3046875,
+        "wrong_per_1000_requests": 216.66666666666666,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.7,
+        "wrong_answer_rate": 0.29365079365079366,
+        "wrong_per_1000_requests": 205.55555555555554,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.6944444444444444,
+        "wrong_answer_rate": 0.288,
+        "wrong_per_1000_requests": 200.0,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.6777777777777778,
+        "wrong_answer_rate": 0.27049180327868855,
+        "wrong_per_1000_requests": 183.33333333333334,
+        "duplicate_recall": 0.9888888888888889
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.6666666666666666,
+        "wrong_answer_rate": 0.26666666666666666,
+        "wrong_per_1000_requests": 177.77777777777777,
+        "duplicate_recall": 0.9777777777777777
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.6611111111111111,
+        "wrong_answer_rate": 0.2605042016806723,
+        "wrong_per_1000_requests": 172.22222222222223,
+        "duplicate_recall": 0.9777777777777777
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.6333333333333333,
+        "wrong_answer_rate": 0.22807017543859648,
+        "wrong_per_1000_requests": 144.44444444444446,
+        "duplicate_recall": 0.9777777777777777
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.6277777777777778,
+        "wrong_answer_rate": 0.22123893805309736,
+        "wrong_per_1000_requests": 138.88888888888889,
+        "duplicate_recall": 0.9777777777777777
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.6222222222222222,
+        "wrong_answer_rate": 0.21428571428571427,
+        "wrong_per_1000_requests": 133.33333333333334,
+        "duplicate_recall": 0.9777777777777777
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.6111111111111112,
+        "wrong_answer_rate": 0.2,
+        "wrong_per_1000_requests": 122.22222222222223,
+        "duplicate_recall": 0.9777777777777777
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.5944444444444444,
+        "wrong_answer_rate": 0.19626168224299065,
+        "wrong_per_1000_requests": 116.66666666666667,
+        "duplicate_recall": 0.9555555555555556
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.5777777777777777,
+        "wrong_answer_rate": 0.17307692307692307,
+        "wrong_per_1000_requests": 100.0,
+        "duplicate_recall": 0.9555555555555556
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.5666666666666667,
+        "wrong_answer_rate": 0.1568627450980392,
+        "wrong_per_1000_requests": 88.88888888888889,
+        "duplicate_recall": 0.9555555555555556
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.5555555555555556,
+        "wrong_answer_rate": 0.15,
+        "wrong_per_1000_requests": 83.33333333333333,
+        "duplicate_recall": 0.9444444444444444
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.5388888888888889,
+        "wrong_answer_rate": 0.12371134020618557,
+        "wrong_per_1000_requests": 66.66666666666667,
+        "duplicate_recall": 0.9444444444444444
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.5388888888888889,
+        "wrong_answer_rate": 0.12371134020618557,
+        "wrong_per_1000_requests": 66.66666666666667,
+        "duplicate_recall": 0.9444444444444444
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.5055555555555555,
+        "wrong_answer_rate": 0.0989010989010989,
+        "wrong_per_1000_requests": 50.0,
+        "duplicate_recall": 0.9111111111111111
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.49444444444444446,
+        "wrong_answer_rate": 0.0898876404494382,
+        "wrong_per_1000_requests": 44.44444444444444,
+        "duplicate_recall": 0.9
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.4722222222222222,
+        "wrong_answer_rate": 0.07058823529411765,
+        "wrong_per_1000_requests": 33.333333333333336,
+        "duplicate_recall": 0.8777777777777778
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.42777777777777776,
+        "wrong_answer_rate": 0.06493506493506493,
+        "wrong_per_1000_requests": 27.77777777777778,
+        "duplicate_recall": 0.8
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.4,
+        "wrong_answer_rate": 0.05555555555555555,
+        "wrong_per_1000_requests": 22.22222222222222,
+        "duplicate_recall": 0.7555555555555555
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.35,
+        "wrong_answer_rate": 0.06349206349206349,
+        "wrong_per_1000_requests": 22.22222222222222,
+        "duplicate_recall": 0.6555555555555556
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.3055555555555556,
+        "wrong_answer_rate": 0.01818181818181818,
+        "wrong_per_1000_requests": 5.555555555555555,
+        "duplicate_recall": 0.6
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.2388888888888889,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.4777777777777778
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.18888888888888888,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.37777777777777777
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.15,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.3
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.06666666666666667,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.13333333333333333
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.011111111111111112,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.022222222222222223
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.005555555555555556,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.011111111111111112
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.0,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.0
+      }
+    ],
+    "heldout_pairwise": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.8714285714285714,
+        "wrong_answer_rate": 0.4918032786885246,
+        "wrong_per_1000_requests": 428.57142857142856,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.8428571428571429,
+        "wrong_answer_rate": 0.4745762711864407,
+        "wrong_per_1000_requests": 400.0,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.8285714285714286,
+        "wrong_answer_rate": 0.46551724137931033,
+        "wrong_per_1000_requests": 385.7142857142857,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.8285714285714286,
+        "wrong_answer_rate": 0.46551724137931033,
+        "wrong_per_1000_requests": 385.7142857142857,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.8285714285714286,
+        "wrong_answer_rate": 0.46551724137931033,
+        "wrong_per_1000_requests": 385.7142857142857,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.8142857142857143,
+        "wrong_answer_rate": 0.45614035087719296,
+        "wrong_per_1000_requests": 371.42857142857144,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.7857142857142857,
+        "wrong_answer_rate": 0.43636363636363634,
+        "wrong_per_1000_requests": 342.85714285714283,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.7714285714285715,
+        "wrong_answer_rate": 0.42592592592592593,
+        "wrong_per_1000_requests": 328.57142857142856,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.7714285714285715,
+        "wrong_answer_rate": 0.42592592592592593,
+        "wrong_per_1000_requests": 328.57142857142856,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.7714285714285715,
+        "wrong_answer_rate": 0.42592592592592593,
+        "wrong_per_1000_requests": 328.57142857142856,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.7714285714285715,
+        "wrong_answer_rate": 0.42592592592592593,
+        "wrong_per_1000_requests": 328.57142857142856,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.7571428571428571,
+        "wrong_answer_rate": 0.41509433962264153,
+        "wrong_per_1000_requests": 314.2857142857143,
+        "duplicate_recall": 1.0
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.7428571428571429,
+        "wrong_answer_rate": 0.4230769230769231,
+        "wrong_per_1000_requests": 314.2857142857143,
+        "duplicate_recall": 0.967741935483871
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.7428571428571429,
+        "wrong_answer_rate": 0.4230769230769231,
+        "wrong_per_1000_requests": 314.2857142857143,
+        "duplicate_recall": 0.967741935483871
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.7285714285714285,
+        "wrong_answer_rate": 0.43137254901960786,
+        "wrong_per_1000_requests": 314.2857142857143,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.7,
+        "wrong_answer_rate": 0.42857142857142855,
+        "wrong_per_1000_requests": 300.0,
+        "duplicate_recall": 0.9032258064516129
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.6428571428571429,
+        "wrong_answer_rate": 0.4444444444444444,
+        "wrong_per_1000_requests": 285.7142857142857,
+        "duplicate_recall": 0.8064516129032258
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.6285714285714286,
+        "wrong_answer_rate": 0.45454545454545453,
+        "wrong_per_1000_requests": 285.7142857142857,
+        "duplicate_recall": 0.7741935483870968
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.5714285714285714,
+        "wrong_answer_rate": 0.425,
+        "wrong_per_1000_requests": 242.85714285714286,
+        "duplicate_recall": 0.7419354838709677
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.5714285714285714,
+        "wrong_answer_rate": 0.425,
+        "wrong_per_1000_requests": 242.85714285714286,
+        "duplicate_recall": 0.7419354838709677
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.5571428571428572,
+        "wrong_answer_rate": 0.4358974358974359,
+        "wrong_per_1000_requests": 242.85714285714286,
+        "duplicate_recall": 0.7096774193548387
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.5,
+        "wrong_answer_rate": 0.4,
+        "wrong_per_1000_requests": 200.0,
+        "duplicate_recall": 0.6774193548387096
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.44285714285714284,
+        "wrong_answer_rate": 0.3870967741935484,
+        "wrong_per_1000_requests": 171.42857142857142,
+        "duplicate_recall": 0.6129032258064516
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.42857142857142855,
+        "wrong_answer_rate": 0.36666666666666664,
+        "wrong_per_1000_requests": 157.14285714285714,
+        "duplicate_recall": 0.6129032258064516
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.37142857142857144,
+        "wrong_answer_rate": 0.3076923076923077,
+        "wrong_per_1000_requests": 114.28571428571429,
+        "duplicate_recall": 0.5806451612903226
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.34285714285714286,
+        "wrong_answer_rate": 0.3333333333333333,
+        "wrong_per_1000_requests": 114.28571428571429,
+        "duplicate_recall": 0.5161290322580645
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.2571428571428571,
+        "wrong_answer_rate": 0.3333333333333333,
+        "wrong_per_1000_requests": 85.71428571428571,
+        "duplicate_recall": 0.3870967741935484
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.2,
+        "wrong_answer_rate": 0.35714285714285715,
+        "wrong_per_1000_requests": 71.42857142857143,
+        "duplicate_recall": 0.2903225806451613
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.14285714285714285,
+        "wrong_answer_rate": 0.3,
+        "wrong_per_1000_requests": 42.857142857142854,
+        "duplicate_recall": 0.22580645161290322
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.11428571428571428,
+        "wrong_answer_rate": 0.375,
+        "wrong_per_1000_requests": 42.857142857142854,
+        "duplicate_recall": 0.16129032258064516
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.0,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.0
+      }
+    ],
+    "heldout_pairwise_guard": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.6571428571428571,
+        "wrong_answer_rate": 0.3695652173913043,
+        "wrong_per_1000_requests": 242.85714285714286,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.6285714285714286,
+        "wrong_answer_rate": 0.3409090909090909,
+        "wrong_per_1000_requests": 214.28571428571428,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.6142857142857143,
+        "wrong_answer_rate": 0.32558139534883723,
+        "wrong_per_1000_requests": 200.0,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.6142857142857143,
+        "wrong_answer_rate": 0.32558139534883723,
+        "wrong_per_1000_requests": 200.0,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.6142857142857143,
+        "wrong_answer_rate": 0.32558139534883723,
+        "wrong_per_1000_requests": 200.0,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.6,
+        "wrong_answer_rate": 0.30952380952380953,
+        "wrong_per_1000_requests": 185.71428571428572,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.5714285714285714,
+        "wrong_answer_rate": 0.275,
+        "wrong_per_1000_requests": 157.14285714285714,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.5571428571428572,
+        "wrong_answer_rate": 0.2564102564102564,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.5571428571428572,
+        "wrong_answer_rate": 0.2564102564102564,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.5571428571428572,
+        "wrong_answer_rate": 0.2564102564102564,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.5571428571428572,
+        "wrong_answer_rate": 0.2564102564102564,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.5571428571428572,
+        "wrong_answer_rate": 0.2564102564102564,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.9354838709677419
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.5428571428571428,
+        "wrong_answer_rate": 0.2631578947368421,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.9032258064516129
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.5428571428571428,
+        "wrong_answer_rate": 0.2631578947368421,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.9032258064516129
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.5285714285714286,
+        "wrong_answer_rate": 0.2702702702702703,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.8709677419354839
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.5142857142857142,
+        "wrong_answer_rate": 0.2777777777777778,
+        "wrong_per_1000_requests": 142.85714285714286,
+        "duplicate_recall": 0.8387096774193549
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.45714285714285713,
+        "wrong_answer_rate": 0.28125,
+        "wrong_per_1000_requests": 128.57142857142858,
+        "duplicate_recall": 0.7419354838709677
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.44285714285714284,
+        "wrong_answer_rate": 0.2903225806451613,
+        "wrong_per_1000_requests": 128.57142857142858,
+        "duplicate_recall": 0.7096774193548387
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.4142857142857143,
+        "wrong_answer_rate": 0.27586206896551724,
+        "wrong_per_1000_requests": 114.28571428571429,
+        "duplicate_recall": 0.6774193548387096
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.4142857142857143,
+        "wrong_answer_rate": 0.27586206896551724,
+        "wrong_per_1000_requests": 114.28571428571429,
+        "duplicate_recall": 0.6774193548387096
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.4,
+        "wrong_answer_rate": 0.2857142857142857,
+        "wrong_per_1000_requests": 114.28571428571429,
+        "duplicate_recall": 0.6451612903225806
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.35714285714285715,
+        "wrong_answer_rate": 0.24,
+        "wrong_per_1000_requests": 85.71428571428571,
+        "duplicate_recall": 0.6129032258064516
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.3142857142857143,
+        "wrong_answer_rate": 0.22727272727272727,
+        "wrong_per_1000_requests": 71.42857142857143,
+        "duplicate_recall": 0.5483870967741935
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.3,
+        "wrong_answer_rate": 0.19047619047619047,
+        "wrong_per_1000_requests": 57.142857142857146,
+        "duplicate_recall": 0.5483870967741935
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.2714285714285714,
+        "wrong_answer_rate": 0.15789473684210525,
+        "wrong_per_1000_requests": 42.857142857142854,
+        "duplicate_recall": 0.5161290322580645
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.24285714285714285,
+        "wrong_answer_rate": 0.17647058823529413,
+        "wrong_per_1000_requests": 42.857142857142854,
+        "duplicate_recall": 0.45161290322580644
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.17142857142857143,
+        "wrong_answer_rate": 0.16666666666666666,
+        "wrong_per_1000_requests": 28.571428571428573,
+        "duplicate_recall": 0.3225806451612903
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.14285714285714285,
+        "wrong_answer_rate": 0.2,
+        "wrong_per_1000_requests": 28.571428571428573,
+        "duplicate_recall": 0.25806451612903225
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.1,
+        "wrong_answer_rate": 0.14285714285714285,
+        "wrong_per_1000_requests": 14.285714285714286,
+        "duplicate_recall": 0.1935483870967742
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.08571428571428572,
+        "wrong_answer_rate": 0.16666666666666666,
+        "wrong_per_1000_requests": 14.285714285714286,
+        "duplicate_recall": 0.16129032258064516
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.0,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.0
+      }
+    ],
+    "qqp_pairwise": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.5785,
+        "wrong_answer_rate": 0.4031114952463267,
+        "wrong_per_1000_requests": 233.2,
+        "duplicate_recall": 0.939975500204165
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.56505,
+        "wrong_answer_rate": 0.39562870542429873,
+        "wrong_per_1000_requests": 223.55,
+        "duplicate_recall": 0.9296311419627059
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.55165,
+        "wrong_answer_rate": 0.38747394181093087,
+        "wrong_per_1000_requests": 213.75,
+        "duplicate_recall": 0.919831223628692
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.5382,
+        "wrong_answer_rate": 0.3791341508732813,
+        "wrong_per_1000_requests": 204.05,
+        "duplicate_recall": 0.9096229753640942
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.5241,
+        "wrong_answer_rate": 0.37178019461934747,
+        "wrong_per_1000_requests": 194.85,
+        "duplicate_recall": 0.8962841976316864
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.5091,
+        "wrong_answer_rate": 0.3639756432920841,
+        "wrong_per_1000_requests": 185.3,
+        "duplicate_recall": 0.8814482101538043
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.49135,
+        "wrong_answer_rate": 0.35463518876564565,
+        "wrong_per_1000_requests": 174.25,
+        "duplicate_recall": 0.8632094732543896
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.4747,
+        "wrong_answer_rate": 0.3463239941015378,
+        "wrong_per_1000_requests": 164.4,
+        "duplicate_recall": 0.8446985164012523
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.4585,
+        "wrong_answer_rate": 0.33838604143947654,
+        "wrong_per_1000_requests": 155.15,
+        "duplicate_recall": 0.8257792296175309
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.44005,
+        "wrong_answer_rate": 0.3295080104533576,
+        "wrong_per_1000_requests": 145.0,
+        "duplicate_recall": 0.8031849734585546
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.41905,
+        "wrong_answer_rate": 0.3198902278964324,
+        "wrong_per_1000_requests": 134.05,
+        "duplicate_recall": 0.7758268681094325
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.39855,
+        "wrong_answer_rate": 0.3093714715844938,
+        "wrong_per_1000_requests": 123.3,
+        "duplicate_recall": 0.7492854226214781
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.3762,
+        "wrong_answer_rate": 0.29797979797979796,
+        "wrong_per_1000_requests": 112.1,
+        "duplicate_recall": 0.7189328977814073
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.35235,
+        "wrong_answer_rate": 0.28593727827444304,
+        "wrong_per_1000_requests": 100.75,
+        "duplicate_recall": 0.6849054035660814
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.3303,
+        "wrong_answer_rate": 0.27475022706630337,
+        "wrong_per_1000_requests": 90.75,
+        "duplicate_recall": 0.6521028991425072
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.3094,
+        "wrong_answer_rate": 0.2676147382029735,
+        "wrong_per_1000_requests": 82.8,
+        "duplicate_recall": 0.6168504151354294
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.2873,
+        "wrong_answer_rate": 0.25443786982248523,
+        "wrong_per_1000_requests": 73.1,
+        "duplicate_recall": 0.5830951408738261
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.2664,
+        "wrong_answer_rate": 0.246996996996997,
+        "wrong_per_1000_requests": 65.8,
+        "duplicate_recall": 0.5460732271675514
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.2441,
+        "wrong_answer_rate": 0.23433019254403933,
+        "wrong_per_1000_requests": 57.2,
+        "duplicate_recall": 0.5087790935075541
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.22055,
+        "wrong_answer_rate": 0.22262525504420766,
+        "wrong_per_1000_requests": 49.1,
+        "duplicate_recall": 0.4667211106574112
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.1974,
+        "wrong_answer_rate": 0.21099290780141844,
+        "wrong_per_1000_requests": 41.65,
+        "duplicate_recall": 0.42398257792296173
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.17365,
+        "wrong_answer_rate": 0.19982723869853153,
+        "wrong_per_1000_requests": 34.7,
+        "duplicate_recall": 0.37824962569756365
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.1516,
+        "wrong_answer_rate": 0.18601583113456466,
+        "wrong_per_1000_requests": 28.2,
+        "duplicate_recall": 0.3359194228936981
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.13085,
+        "wrong_answer_rate": 0.17195261750095528,
+        "wrong_per_1000_requests": 22.5,
+        "duplicate_recall": 0.2949503198584456
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.10965,
+        "wrong_answer_rate": 0.15367077063383494,
+        "wrong_per_1000_requests": 16.85,
+        "duplicate_recall": 0.2526201170545801
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.08845,
+        "wrong_answer_rate": 0.13114754098360656,
+        "wrong_per_1000_requests": 11.6,
+        "duplicate_recall": 0.20920103443582413
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.0694,
+        "wrong_answer_rate": 0.11743515850144093,
+        "wrong_per_1000_requests": 8.15,
+        "duplicate_recall": 0.1667347216550973
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.05095,
+        "wrong_answer_rate": 0.09813542688910697,
+        "wrong_per_1000_requests": 5.0,
+        "duplicate_recall": 0.12508506873553832
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.0341,
+        "wrong_answer_rate": 0.08944281524926687,
+        "wrong_per_1000_requests": 3.05,
+        "duplicate_recall": 0.08452429563086974
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.0174,
+        "wrong_answer_rate": 0.06896551724137931,
+        "wrong_per_1000_requests": 1.2,
+        "duplicate_recall": 0.04409963250306247
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.00035,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.0009527698380291275
+      }
+    ],
+    "qqp_pairwise_guard": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.535,
+        "wrong_answer_rate": 0.3925233644859813,
+        "wrong_per_1000_requests": 210.0,
+        "duplicate_recall": 0.8847148495984756
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.5234,
+        "wrong_answer_rate": 0.38517386320213987,
+        "wrong_per_1000_requests": 201.6,
+        "duplicate_recall": 0.8760038110793521
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.51175,
+        "wrong_answer_rate": 0.3769418661455789,
+        "wrong_per_1000_requests": 192.9,
+        "duplicate_recall": 0.8679733224445352
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.49985,
+        "wrong_answer_rate": 0.3687106131839552,
+        "wrong_per_1000_requests": 184.3,
+        "duplicate_recall": 0.8589900639716891
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.48785,
+        "wrong_answer_rate": 0.3617915342830788,
+        "wrong_per_1000_requests": 176.5,
+        "duplicate_recall": 0.8475568259153395
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.47425,
+        "wrong_answer_rate": 0.3539272535582499,
+        "wrong_per_1000_requests": 167.85,
+        "duplicate_recall": 0.8340819382060705
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.45875,
+        "wrong_answer_rate": 0.3449591280653951,
+        "wrong_per_1000_requests": 158.25,
+        "duplicate_recall": 0.8180209609364366
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.44385,
+        "wrong_answer_rate": 0.3363749014306635,
+        "wrong_per_1000_requests": 149.3,
+        "duplicate_recall": 0.8018238736899415
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.4296,
+        "wrong_answer_rate": 0.32786312849162014,
+        "wrong_per_1000_requests": 140.85,
+        "duplicate_recall": 0.7860351163740302
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.4133,
+        "wrong_answer_rate": 0.31974352770384706,
+        "wrong_per_1000_requests": 132.15,
+        "duplicate_recall": 0.765346399891112
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.3943,
+        "wrong_answer_rate": 0.309789500380421,
+        "wrong_per_1000_requests": 122.15,
+        "duplicate_recall": 0.7408466040560773
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.3764,
+        "wrong_answer_rate": 0.29914984059511157,
+        "wrong_per_1000_requests": 112.6,
+        "duplicate_recall": 0.7181162379202396
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.35585,
+        "wrong_answer_rate": 0.28776169734438667,
+        "wrong_per_1000_requests": 102.4,
+        "duplicate_recall": 0.6899414727099497
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.33375,
+        "wrong_answer_rate": 0.27490636704119853,
+        "wrong_per_1000_requests": 91.75,
+        "duplicate_recall": 0.658772288008711
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.31305,
+        "wrong_answer_rate": 0.2632167385401693,
+        "wrong_per_1000_requests": 82.4,
+        "duplicate_recall": 0.627875323261195
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.29355,
+        "wrong_answer_rate": 0.256004087889627,
+        "wrong_per_1000_requests": 75.15,
+        "duplicate_recall": 0.5945283789301756
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.2733,
+        "wrong_answer_rate": 0.24277350896450786,
+        "wrong_per_1000_requests": 66.35,
+        "duplicate_recall": 0.563359194228937
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.25405,
+        "wrong_answer_rate": 0.23499311159220626,
+        "wrong_per_1000_requests": 59.7,
+        "duplicate_recall": 0.5290594800598883
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.2333,
+        "wrong_answer_rate": 0.22203171881697387,
+        "wrong_per_1000_requests": 51.8,
+        "duplicate_recall": 0.49407921600653326
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.2113,
+        "wrong_answer_rate": 0.2096545196403218,
+        "wrong_per_1000_requests": 44.3,
+        "duplicate_recall": 0.45460732271675514
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.18865,
+        "wrong_answer_rate": 0.19639544129340047,
+        "wrong_per_1000_requests": 37.05,
+        "duplicate_recall": 0.41268544984347355
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.1663,
+        "wrong_answer_rate": 0.18490679494888757,
+        "wrong_per_1000_requests": 30.75,
+        "duplicate_recall": 0.36899414727099494
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.14545,
+        "wrong_answer_rate": 0.1705053282915091,
+        "wrong_per_1000_requests": 24.8,
+        "duplicate_recall": 0.3284333741663264
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.1256,
+        "wrong_answer_rate": 0.15445859872611464,
+        "wrong_per_1000_requests": 19.4,
+        "duplicate_recall": 0.2890975908534096
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.10575,
+        "wrong_answer_rate": 0.13900709219858157,
+        "wrong_per_1000_requests": 14.7,
+        "duplicate_recall": 0.24785626786443446
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.0857,
+        "wrong_answer_rate": 0.11960326721120186,
+        "wrong_per_1000_requests": 10.25,
+        "duplicate_recall": 0.20538995508370764
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.06765,
+        "wrong_answer_rate": 0.10790835181079084,
+        "wrong_per_1000_requests": 7.3,
+        "duplicate_recall": 0.16428474207159385
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.0498,
+        "wrong_answer_rate": 0.09136546184738956,
+        "wrong_per_1000_requests": 4.55,
+        "duplicate_recall": 0.12317952905948006
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.0335,
+        "wrong_answer_rate": 0.08358208955223881,
+        "wrong_per_1000_requests": 2.8,
+        "duplicate_recall": 0.08357152579284062
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.0171,
+        "wrong_answer_rate": 0.06140350877192982,
+        "wrong_per_1000_requests": 1.05,
+        "duplicate_recall": 0.043691302572478566
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.00035,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0,
+        "duplicate_recall": 0.0009527698380291275
+      }
+    ],
+    "qqp_retrieval": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.66805,
+        "wrong_answer_rate": 0.4739914677045131,
+        "wrong_per_1000_requests": 316.65
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.6539,
+        "wrong_answer_rate": 0.4646734974766784,
+        "wrong_per_1000_requests": 303.85
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.63795,
+        "wrong_answer_rate": 0.453327063249471,
+        "wrong_per_1000_requests": 289.2
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.6237,
+        "wrong_answer_rate": 0.44332210998877664,
+        "wrong_per_1000_requests": 276.5
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.60935,
+        "wrong_answer_rate": 0.4330023795848035,
+        "wrong_per_1000_requests": 263.85
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.59395,
+        "wrong_answer_rate": 0.4228470409967169,
+        "wrong_per_1000_requests": 251.15
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.5754,
+        "wrong_answer_rate": 0.4110184219673271,
+        "wrong_per_1000_requests": 236.5
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.55845,
+        "wrong_answer_rate": 0.3995881457605873,
+        "wrong_per_1000_requests": 223.15
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.54085,
+        "wrong_answer_rate": 0.3876305814920958,
+        "wrong_per_1000_requests": 209.65
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.52245,
+        "wrong_answer_rate": 0.3759211407790219,
+        "wrong_per_1000_requests": 196.4
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.5028,
+        "wrong_answer_rate": 0.3638623707239459,
+        "wrong_per_1000_requests": 182.95
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.4835,
+        "wrong_answer_rate": 0.3500517063081696,
+        "wrong_per_1000_requests": 169.25
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.462,
+        "wrong_answer_rate": 0.336038961038961,
+        "wrong_per_1000_requests": 155.25
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.43955,
+        "wrong_answer_rate": 0.3188488226595382,
+        "wrong_per_1000_requests": 140.15
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.4164,
+        "wrong_answer_rate": 0.3037944284341979,
+        "wrong_per_1000_requests": 126.5
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.3959,
+        "wrong_answer_rate": 0.29148774943167466,
+        "wrong_per_1000_requests": 115.4
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.37285,
+        "wrong_answer_rate": 0.27423897009521253,
+        "wrong_per_1000_requests": 102.25
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.3508,
+        "wrong_answer_rate": 0.2611174458380844,
+        "wrong_per_1000_requests": 91.6
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.32755,
+        "wrong_answer_rate": 0.24454281789039842,
+        "wrong_per_1000_requests": 80.1
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.30295,
+        "wrong_answer_rate": 0.230236012543324,
+        "wrong_per_1000_requests": 69.75
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.27815,
+        "wrong_answer_rate": 0.21445263347114865,
+        "wrong_per_1000_requests": 59.65
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.2513,
+        "wrong_answer_rate": 0.19896538002387584,
+        "wrong_per_1000_requests": 50.0
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.2264,
+        "wrong_answer_rate": 0.17999116607773852,
+        "wrong_per_1000_requests": 40.75
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.20095,
+        "wrong_answer_rate": 0.15849713859168948,
+        "wrong_per_1000_requests": 31.85
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.1746,
+        "wrong_answer_rate": 0.13802978235967928,
+        "wrong_per_1000_requests": 24.1
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.14925,
+        "wrong_answer_rate": 0.111892797319933,
+        "wrong_per_1000_requests": 16.7
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.1251,
+        "wrong_answer_rate": 0.09472422062350119,
+        "wrong_per_1000_requests": 11.85
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.10175,
+        "wrong_answer_rate": 0.07518427518427519,
+        "wrong_per_1000_requests": 7.65
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.08065,
+        "wrong_answer_rate": 0.05517668939863608,
+        "wrong_per_1000_requests": 4.45
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.06025,
+        "wrong_answer_rate": 0.027385892116182572,
+        "wrong_per_1000_requests": 1.65
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.023,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0
+      }
+    ],
+    "qqp_retrieval_guard": [
+      {
+        "threshold": 0.7,
+        "hit_rate": 0.62815,
+        "wrong_answer_rate": 0.4587280108254398,
+        "wrong_per_1000_requests": 288.15
+      },
+      {
+        "threshold": 0.71,
+        "hit_rate": 0.61555,
+        "wrong_answer_rate": 0.4496791487287791,
+        "wrong_per_1000_requests": 276.8
+      },
+      {
+        "threshold": 0.72,
+        "hit_rate": 0.60075,
+        "wrong_answer_rate": 0.4382854764877237,
+        "wrong_per_1000_requests": 263.3
+      },
+      {
+        "threshold": 0.73,
+        "hit_rate": 0.58795,
+        "wrong_answer_rate": 0.4285228335742835,
+        "wrong_per_1000_requests": 251.95
+      },
+      {
+        "threshold": 0.74,
+        "hit_rate": 0.5747,
+        "wrong_answer_rate": 0.41847920654254395,
+        "wrong_per_1000_requests": 240.5
+      },
+      {
+        "threshold": 0.75,
+        "hit_rate": 0.56045,
+        "wrong_answer_rate": 0.40860023195646356,
+        "wrong_per_1000_requests": 229.0
+      },
+      {
+        "threshold": 0.76,
+        "hit_rate": 0.5438,
+        "wrong_answer_rate": 0.3968370724531078,
+        "wrong_per_1000_requests": 215.8
+      },
+      {
+        "threshold": 0.77,
+        "hit_rate": 0.5286,
+        "wrong_answer_rate": 0.3855467272039349,
+        "wrong_per_1000_requests": 203.8
+      },
+      {
+        "threshold": 0.78,
+        "hit_rate": 0.51275,
+        "wrong_answer_rate": 0.37367137981472454,
+        "wrong_per_1000_requests": 191.6
+      },
+      {
+        "threshold": 0.79,
+        "hit_rate": 0.49645,
+        "wrong_answer_rate": 0.3624735622922752,
+        "wrong_per_1000_requests": 179.95
+      },
+      {
+        "threshold": 0.8,
+        "hit_rate": 0.47865,
+        "wrong_answer_rate": 0.35036038859291757,
+        "wrong_per_1000_requests": 167.7
+      },
+      {
+        "threshold": 0.81,
+        "hit_rate": 0.46105,
+        "wrong_answer_rate": 0.33662292592994253,
+        "wrong_per_1000_requests": 155.2
+      },
+      {
+        "threshold": 0.82,
+        "hit_rate": 0.441,
+        "wrong_answer_rate": 0.322562358276644,
+        "wrong_per_1000_requests": 142.25
+      },
+      {
+        "threshold": 0.83,
+        "hit_rate": 0.42045,
+        "wrong_answer_rate": 0.3053870852657867,
+        "wrong_per_1000_requests": 128.4
+      },
+      {
+        "threshold": 0.84,
+        "hit_rate": 0.39905,
+        "wrong_answer_rate": 0.29081568725723594,
+        "wrong_per_1000_requests": 116.05
+      },
+      {
+        "threshold": 0.85,
+        "hit_rate": 0.3797,
+        "wrong_answer_rate": 0.27864103239399524,
+        "wrong_per_1000_requests": 105.8
+      },
+      {
+        "threshold": 0.86,
+        "hit_rate": 0.3585,
+        "wrong_answer_rate": 0.2623430962343096,
+        "wrong_per_1000_requests": 94.05
+      },
+      {
+        "threshold": 0.87,
+        "hit_rate": 0.33775,
+        "wrong_answer_rate": 0.24959289415247965,
+        "wrong_per_1000_requests": 84.3
+      },
+      {
+        "threshold": 0.88,
+        "hit_rate": 0.31625,
+        "wrong_answer_rate": 0.233201581027668,
+        "wrong_per_1000_requests": 73.75
+      },
+      {
+        "threshold": 0.89,
+        "hit_rate": 0.2931,
+        "wrong_answer_rate": 0.2195496417604913,
+        "wrong_per_1000_requests": 64.35
+      },
+      {
+        "threshold": 0.9,
+        "hit_rate": 0.26885,
+        "wrong_answer_rate": 0.20308722335875024,
+        "wrong_per_1000_requests": 54.6
+      },
+      {
+        "threshold": 0.91,
+        "hit_rate": 0.2431,
+        "wrong_answer_rate": 0.18757712875359933,
+        "wrong_per_1000_requests": 45.6
+      },
+      {
+        "threshold": 0.92,
+        "hit_rate": 0.2195,
+        "wrong_answer_rate": 0.1683371298405467,
+        "wrong_per_1000_requests": 36.95
+      },
+      {
+        "threshold": 0.93,
+        "hit_rate": 0.19525,
+        "wrong_answer_rate": 0.1467349551856594,
+        "wrong_per_1000_requests": 28.65
+      },
+      {
+        "threshold": 0.94,
+        "hit_rate": 0.17035,
+        "wrong_answer_rate": 0.1282653360727913,
+        "wrong_per_1000_requests": 21.85
+      },
+      {
+        "threshold": 0.95,
+        "hit_rate": 0.14625,
+        "wrong_answer_rate": 0.10495726495726496,
+        "wrong_per_1000_requests": 15.35
+      },
+      {
+        "threshold": 0.96,
+        "hit_rate": 0.12325,
+        "wrong_answer_rate": 0.08884381338742393,
+        "wrong_per_1000_requests": 10.95
+      },
+      {
+        "threshold": 0.97,
+        "hit_rate": 0.1006,
+        "wrong_answer_rate": 0.07157057654075547,
+        "wrong_per_1000_requests": 7.2
+      },
+      {
+        "threshold": 0.98,
+        "hit_rate": 0.08005,
+        "wrong_answer_rate": 0.05246720799500312,
+        "wrong_per_1000_requests": 4.2
+      },
+      {
+        "threshold": 0.99,
+        "hit_rate": 0.05995,
+        "wrong_answer_rate": 0.02585487906588824,
+        "wrong_per_1000_requests": 1.55
+      },
+      {
+        "threshold": 1.0,
+        "hit_rate": 0.023,
+        "wrong_answer_rate": 0.0,
+        "wrong_per_1000_requests": 0.0
+      }
+    ]
+  }
+}

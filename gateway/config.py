@@ -97,7 +97,7 @@ class Price(BaseModel):
 
 class SemanticCacheConfig(BaseModel):
     enabled: bool = True
-    threshold: float = 0.95
+    threshold: float = 0.99  # measured in bench/cache_eval.py
     ttl_s: int = 86_400
 
 

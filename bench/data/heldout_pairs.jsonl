@@ -1,0 +1,70 @@
+{"q1": "How do I convert a PDF to Word?", "q2": "How do I convert a Word document to PDF?", "label": 0}
+{"q1": "How do I copy files from my laptop to a server with scp?", "q2": "How do I copy files from a server to my laptop with scp?", "label": 0}
+{"q1": "Translate 'where is the station' from German to English.", "q2": "Translate 'where is the station' from English to German.", "label": 0}
+{"q1": "What is 7 times 8?", "q2": "What is 8 times 7?", "label": 1}
+{"q1": "How many ounces are in 3 cups?", "q2": "How many ounces are in 4 cups?", "label": 0}
+{"q1": "What is the maximum length of a tweet?", "q2": "What is the minimum length of a tweet?", "label": 0}
+{"q1": "How do I enable dark mode on iPhone?", "q2": "How do I disable dark mode on iPhone?", "label": 0}
+{"q1": "How do I increase the font size in VS Code?", "q2": "How do I decrease the font size in VS Code?", "label": 0}
+{"q1": "Is it legal to drive barefoot in the UK?", "q2": "Is it illegal to drive barefoot in the UK?", "label": 1}
+{"q1": "How do I encrypt a file with GPG?", "q2": "How do I decrypt a file with GPG?", "label": 0}
+{"q1": "What happened in 1969 on the Moon?", "q2": "What happened on the Moon in 1969?", "label": 1}
+{"q1": "What is the capital of Canada?", "q2": "Which city is Canada's capital?", "label": 1}
+{"q1": "What is the capital of Canada?", "q2": "What is the largest city in Canada?", "label": 0}
+{"q1": "How do I exit vim?", "q2": "How can I quit the vim editor?", "label": 1}
+{"q1": "How do I exit vim?", "q2": "How do I exit nano?", "label": 0}
+{"q1": "What does SQL stand for?", "q2": "What is SQL short for?", "label": 1}
+{"q1": "What does SQL stand for?", "q2": "What does SSL stand for?", "label": 0}
+{"q1": "How do I upload a file to S3 with the AWS CLI?", "q2": "How do I download a file from S3 with the AWS CLI?", "label": 0}
+{"q1": "How do I upload a file to S3 with the AWS CLI?", "q2": "Using the AWS CLI, how can I upload a file into S3?", "label": 1}
+{"q1": "Why is my Wi-Fi so slow?", "q2": "What makes my Wi-Fi slow?", "label": 1}
+{"q1": "How many teaspoons are in a tablespoon?", "q2": "How many tablespoons are in a teaspoon?", "label": 0}
+{"q1": "What's the difference between a virus and bacteria?", "q2": "How are viruses different from bacteria?", "label": 1}
+{"q1": "How do I import a CSV into PostgreSQL?", "q2": "How do I export a PostgreSQL table to CSV?", "label": 0}
+{"q1": "How do I import a CSV into PostgreSQL?", "q2": "What's the way to load a CSV file into Postgres?", "label": 1}
+{"q1": "Who was the first person to walk on the Moon?", "q2": "Who was the last person to walk on the Moon?", "label": 0}
+{"q1": "Who was the first person to walk on the Moon?", "q2": "Who first walked on the Moon?", "label": 1}
+{"q1": "How do I add a user to a group in Linux?", "q2": "How do I remove a user from a group in Linux?", "label": 0}
+{"q1": "How do I add a user to a group in Linux?", "q2": "In Linux, how can a user be added to a group?", "label": 1}
+{"q1": "Is Python faster than Java?", "q2": "Is Java faster than Python?", "label": 1}
+{"q1": "What is heavier, a kilogram of feathers or a kilogram of steel?", "q2": "Which weighs more: a kilo of steel or a kilo of feathers?", "label": 1}
+{"q1": "How do I make a GET request in Python?", "q2": "How do I make a POST request in Python?", "label": 0}
+{"q1": "How do I make a GET request in Python?", "q2": "How can I send an HTTP GET request with Python?", "label": 1}
+{"q1": "What is the speed limit on German autobahns?", "q2": "What is the speed limit on French motorways?", "label": 0}
+{"q1": "How do I lose weight fast?", "q2": "How do I gain weight fast?", "label": 0}
+{"q1": "How do I lose weight fast?", "q2": "What is the quickest way to lose weight?", "label": 1}
+{"q1": "What are the side effects of ibuprofen?", "q2": "What are the side effects of paracetamol?", "label": 0}
+{"q1": "What are the side effects of ibuprofen?", "q2": "Does ibuprofen have side effects?", "label": 1}
+{"q1": "How do I print hello world in C?", "q2": "How do I print hello world in C++?", "label": 0}
+{"q1": "How do I print hello world in C?", "q2": "Hello world program in C?", "label": 1}
+{"q1": "Recommend a book for learning Rust.", "q2": "What's a good book to learn Rust?", "label": 1}
+{"q1": "Recommend a book for learning Rust.", "q2": "Recommend a book for learning Go.", "label": 0}
+{"q1": "How long is a marathon in miles?", "q2": "How long is a half marathon in miles?", "label": 0}
+{"q1": "How long is a marathon in miles?", "q2": "How many miles is a marathon?", "label": 1}
+{"q1": "How long is a marathon in miles?", "q2": "How long is a marathon in kilometers?", "label": 0}
+{"q1": "What should I pack for a trip to Iceland in winter?", "q2": "What should I pack for a trip to Iceland in summer?", "label": 0}
+{"q1": "What should I pack for a trip to Iceland in winter?", "q2": "Packing list for a winter trip to Iceland?", "label": 1}
+{"q1": "Is a tomato a fruit or a vegetable?", "q2": "Is a tomato a vegetable or a fruit?", "label": 1}
+{"q1": "How do I merge a branch into main?", "q2": "How do I merge main into my branch?", "label": 0}
+{"q1": "How do I rename a column in pandas?", "q2": "How do I rename a column in SQL?", "label": 0}
+{"q1": "How do I rename a column in pandas?", "q2": "Renaming a pandas DataFrame column - how?", "label": 1}
+{"q1": "What is the time in London when it's noon in New York?", "q2": "What is the time in New York when it's noon in London?", "label": 0}
+{"q1": "Can I bring a laptop in my checked luggage?", "q2": "Can I bring a laptop in my carry-on luggage?", "label": 0}
+{"q1": "Can I bring a laptop in my checked luggage?", "q2": "Is it allowed to put a laptop in checked baggage?", "label": 1}
+{"q1": "Explain the difference between RAM and ROM.", "q2": "What distinguishes RAM from ROM?", "label": 1}
+{"q1": "Explain the difference between RAM and ROM.", "q2": "Explain the difference between RAM and storage.", "label": 0}
+{"q1": "What is the population of India in 2020?", "q2": "What is the population of India in 2010?", "label": 0}
+{"q1": "How do I stop my dog from barking at night?", "q2": "How can I get my dog to stop barking at night?", "label": 1}
+{"q1": "How do I stop my dog from barking at night?", "q2": "How do I stop my cat from meowing at night?", "label": 0}
+{"q1": "What's a good name for a coffee shop?", "q2": "Suggest a name for a coffee shop.", "label": 1}
+{"q1": "What's a good name for a coffee shop?", "q2": "Suggest a name for a bakery.", "label": 0}
+{"q1": "How do I zip a folder on Linux?", "q2": "How do I unzip a folder on Linux?", "label": 0}
+{"q1": "How do I zip a folder on Linux?", "q2": "How to compress a directory into a zip file on Linux?", "label": 1}
+{"q1": "How many calories are in a banana?", "q2": "How many calories does a banana have?", "label": 1}
+{"q1": "How many calories are in a banana?", "q2": "How many calories are in an apple?", "label": 0}
+{"q1": "How many calories are in a banana?", "q2": "How much protein is in a banana?", "label": 0}
+{"q1": "Why does ice float on water?", "q2": "Why does ice float?", "label": 1}
+{"q1": "Why does ice float on water?", "q2": "Why does oil float on water?", "label": 0}
+{"q1": "Write a SQL query to find the second highest salary.", "q2": "Write a SQL query to find the second lowest salary.", "label": 0}
+{"q1": "Write a SQL query to find the second highest salary.", "q2": "SQL query for the 2nd highest salary?", "label": 1}
+{"q1": "What are the pros of remote work?", "q2": "What are the cons of remote work?", "label": 0}
