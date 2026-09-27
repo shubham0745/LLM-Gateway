@@ -182,3 +182,7 @@ docs/         architecture, decisions, benchmarks, AWS deploy, demo script, resu
 - The semantic cache considers single-turn prompts only.
 - Throughput per process is modest (Python); scale with `GATEWAY_WORKERS`
   or more hosts.
+
+## Author
+
+**Shubham Kumar** · [LinkedIn](https://www.linkedin.com/in/shubhamkumar-351000334) · [GitHub](https://github.com/shubham0745)
