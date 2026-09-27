@@ -2,6 +2,7 @@
 name = "llm-gateway"
 version = "0.1.0"
 description = "Self-hosted, OpenAI-compatible LLM gateway with routing, failover, limits, caching and cost tracking"
+authors = [{ name = "Shubham Kumar" }]
 requires-python = ">=3.11"
 
 [tool.ruff]
