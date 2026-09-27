@@ -1,0 +1,20 @@
+# Gateway wired to the mock provider. No API keys needed:
+#   docker compose up --build
+#   curl localhost:8000/v1/chat/completions -H 'content-type: application/json' \
+#     -d '{"model": "fast", "messages": [{"role": "user", "content": "hi"}]}'
+services:
+  gateway:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      GATEWAY_CONFIG: config/gateway.mock.yaml
+      MOCK_BASE_URL: http://mock:9000/v1
+    depends_on: [mock]
+
+  mock:
+    build: .
+    command: ["uvicorn", "mock_provider.app:app", "--host", "0.0.0.0", "--port", "9000"]
+    ports: ["9000:9000"]
+    environment:
+      MOCK_LATENCY_MS: "200"
+      MOCK_TOKENS_PER_SECOND: "30"

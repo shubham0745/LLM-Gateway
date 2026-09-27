@@ -1,0 +1,15 @@
+# Points the gateway at the mock provider (docker compose, local dev). No real API calls.
+providers:
+  mock:
+    type: openai
+    base_url: ${MOCK_BASE_URL}
+    api_key: mock-key
+    timeout_seconds: 30
+
+models:
+  fast:
+    provider: mock
+    model: mock-small
+  smart:
+    provider: mock
+    model: mock-large
